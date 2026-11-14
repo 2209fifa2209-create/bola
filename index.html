@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="th" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STREAMPRO</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- HLS.js สำหรับสตรีมมิ่ง .m3u8 -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.11"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts: Prompt & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Prompt', 'Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        slatex: {
+                            950: '#060911',
+                            900: '#0c1220',
+                            800: '#141e33',
+                            700: '#1e2c4a',
+                        },
+                        emerald: {
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0c1220; }
+        ::-webkit-scrollbar-thumb { background: #1e2c4a; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #10b981; }
+        .video-wrapper { aspect-ratio: 16 / 9; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slatex-950 text-slate-100 min-h-screen flex flex-col selection:bg-emerald-500 selection:text-slatex-950">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Main Application Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5 space-y-5">
+
+        <!-- 1. Quick Stream Bar & Playlist Actions (ด้านบนสุด) -->
+        <section class="bg-slatex-900 border border-slate-800 rounded-2xl p-3.5 sm:p-4 shadow-xl">
+            <div class="flex flex-col xl:flex-row items-stretch xl:items-center gap-3">
+                <div class="flex items-center justify-between xl:justify-start gap-2 shrink-0">
+                    <div class="flex items-center gap-2 text-xs sm:text-sm font-semibold text-emerald-400">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>ลิงก์สตรีมด่วน:</span>
+                    </div>
+                    <div class="flex xl:hidden items-center gap-1.5">
+                        <button onclick="openImportModal()" class="bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/40 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-import"></i> นำเข้า M3U
+                        </button>
+                        <button onclick="exportAllChannelsM3U()" class="bg-slatex-800 hover:bg-slatex-700 text-slate-300 border border-slate-700 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition flex items-center gap-1" title="ส่งออกไฟล์ .m3u">
+                            <i class="fa-solid fa-file-export text-emerald-400"></i> .m3u
+                        </button>
+                    </div>
+                </div>
+
+                <div class="relative flex-grow">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-link text-slate-500 text-xs"></i>
+                    </div>
+                    <input type="text" id="quick-m3u8-url"
+                        placeholder="วางลิงก์สตรีม .m3u8 ที่นี่ (เช่น https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8)"
+                        class="w-full bg-slatex-950 border border-slate-700/90 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl pl-9 pr-9 py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition">
+                    <button onclick="clearQuickInput()" title="ล้างช่องข้อความ" class="absolute inset-y-0 right-2 px-2 text-slate-500 hover:text-slate-300 text-xs">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0">
+                    <button onclick="playQuickStream()" class="flex-1 sm:flex-none bg-emerald-500 hover:bg-emerald-600 text-slatex-950 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition flex items-center justify-center gap-2 shadow-md shadow-emerald-500/20">
+                        <i class="fa-solid fa-play"></i> เล่นทันที
+                    </button>
+                    <button onclick="playPublicTestStream()" class="flex-1 sm:flex-none bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition flex items-center justify-center gap-1.5" title="ทดสอบด้วยสตรีม .m3u8 สาธารณะที่เล่นได้จริง">
+                        <i class="fa-solid fa-vial"></i>
+                        <span>ทดสอบสตรีม</span>
+                    </button>
+
+                    <div class="hidden xl:flex items-center gap-2 pl-2 border-l border-slate-800">
+                        <button onclick="openImportModal()" class="bg-slatex-800 hover:bg-slatex-700 text-emerald-400 border border-emerald-500/40 px-3.5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-import"></i> นำเข้า M3U / M3U8
+                        </button>
+                        <button onclick="exportAllChannelsM3U()" class="bg-slatex-800 hover:bg-slatex-700 text-slate-200 border border-slate-700 px-3 py-2.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5" title="ดาวน์โหลดเพลย์ลิสต์ทั้งหมดเป็นไฟล์ .m3u">
+                            <i class="fa-solid fa-file-export text-emerald-400"></i> ส่งออก .m3u
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Main Video Player (เครื่องเล่นวิดีโอตรงกลาง) -->
+        <section class="bg-slatex-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+            <div class="px-4 py-3 bg-slatex-900 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div id="connection-badge" class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-xs font-bold flex items-center gap-1.5 shrink-0">
+                        <span id="connection-dot" class="w-2 h-2 rounded-full bg-slate-400"></span>
+                        <span id="connection-text">พร้อมใช้งาน</span>
+                    </div>
+                    <div class="min-w-0">
+                        <div id="now-playing-category" class="text-[11px] text-emerald-400 font-medium truncate">หมวดหมู่: กีฬาต่างประเทศ</div>
+                        <h1 id="now-playing-title" class="text-sm sm:text-base font-bold text-white truncate">Mux Sports 1 (FHD 1080p)</h1>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 shrink-0">
+                    <span id="stream-buffer-badge" class="hidden sm:inline-flex items-center gap-1 text-[11px] font-mono bg-slatex-950 text-slate-300 border border-slate-800 px-2.5 py-1 rounded-lg">
+                        <i class="fa-solid fa-layer-group text-emerald-400 text-[10px]"></i>
+                        <span id="buffer-value">0.0s</span>
+                    </span>
+                    <span id="stream-resolution-badge" class="text-[11px] font-mono bg-slatex-950 text-emerald-400 border border-slate-800 px-2.5 py-1 rounded-lg">
+                        HLS • AUTO
+                    </span>
+                </div>
+            </div>
+
+            <!-- Video Frame -->
+            <div id="player-frame" class="relative w-full bg-black video-wrapper group select-none">
+                <video id="hls-video" class="w-full h-full object-contain bg-black" playsinline autoplay></video>
+
+                <button id="unmute-prompt-btn" onclick="unmuteAndPlayFull()" class="hidden absolute top-4 left-4 z-30 bg-emerald-500 hover:bg-emerald-400 text-slatex-950 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-2xl shadow-emerald-500/40 border-2 border-white/80 flex items-center gap-2 transition transform hover:scale-105 animate-bounce">
+                    <span>🔊 คลิกเพื่อเปิดเสียง (Unmute)</span>
+                </button>
+
+                <div id="player-overlay" class="absolute inset-0 bg-slatex-950/92 backdrop-blur-sm flex flex-col items-center justify-center p-5 sm:p-8 text-center z-20 hidden">
+                    <div id="overlay-loading" class="flex flex-col items-center">
+                        <div class="w-12 h-12 border-4 border-slate-700 border-t-emerald-500 rounded-full animate-spin mb-3"></div>
+                        <p class="text-sm sm:text-base font-semibold text-white">กำลังเชื่อมต่อสตรีม .m3u8...</p>
+                        <p class="text-xs text-slate-400 mt-1">กำลังโหลด Manifest และระดับความละเอียดวิดีโอ</p>
+                    </div>
+
+                    <div id="overlay-error" class="hidden max-w-lg flex flex-col items-center">
+                        <div class="w-12 h-12 rounded-2xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 text-2xl mb-3">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <h3 id="error-title" class="text-base font-bold text-white">ไม่สามารถเล่นสตรีมนี้ได้</h3>
+                        <p id="error-reason" class="text-xs sm:text-sm text-slate-300 mt-1.5 leading-relaxed"></p>
+                        <div id="error-solution" class="mt-2.5 bg-slatex-900 border border-slate-800 rounded-xl p-3 text-left text-[11px] sm:text-xs text-slate-400 w-full"></div>
+                        <div class="mt-4 flex flex-wrap items-center justify-center gap-2">
+                            <button onclick="reloadStream()" class="px-4 py-2 bg-slatex-800 hover:bg-slatex-700 text-white border border-slate-700 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-rotate-right text-emerald-400"></i> ลองเชื่อมต่อใหม่
+                            </button>
+                            <button onclick="playPublicTestStream()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-slatex-950 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-vial"></i> ทดสอบสตรีมสาธารณะ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custom Pro Player Control Bar -->
+            <div class="px-3 sm:px-4 py-3 bg-slatex-900 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2 sm:gap-2.5">
+                    <button id="btn-play-pause" onclick="togglePlayPause()" class="w-9 h-9 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slatex-950 flex items-center justify-center transition shadow-md shadow-emerald-500/20" title="เล่น / หยุดชั่วคราว">
+                        <i id="icon-play-pause" class="fa-solid fa-pause text-sm"></i>
+                    </button>
+
+                    <button onclick="reloadStream()" class="px-3 h-9 rounded-xl bg-slatex-800 hover:bg-slatex-700 text-slate-200 border border-slate-700 text-xs font-medium flex items-center gap-1.5 transition" title="รีโหลดสัญญาณ">
+                        <i class="fa-solid fa-rotate-right text-emerald-400"></i>
+                        <span class="hidden sm:inline">Reload</span>
+                    </button>
+
+                    <div class="flex items-center gap-2 bg-slatex-800/80 border border-slate-700/80 px-2.5 h-9 rounded-xl">
+                        <button onclick="toggleMute()" class="text-slate-300 hover:text-emerald-400 transition w-5 text-center" title="เปิด/ปิดเสียง">
+                            <i id="icon-volume" class="fa-solid fa-volume-high text-sm text-emerald-400"></i>
+                        </button>
+                        <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="1" oninput="changeVolume(this.value)"
+                            class="w-16 sm:w-20 accent-emerald-500 cursor-pointer h-1.5 bg-slate-700 rounded-lg">
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-1.5 bg-slatex-800 border border-slate-700 rounded-xl px-2.5 h-9">
+                        <i class="fa-solid fa-sliders text-emerald-400 text-xs"></i>
+                        <span class="text-[11px] text-slate-400 hidden sm:inline">ความละเอียด:</span>
+                        <select id="quality-selector" onchange="changeStreamQuality(this.value)" class="bg-transparent text-xs font-semibold text-white outline-none cursor-pointer pr-1">
+                            <option value="-1" class="bg-slatex-900">Auto (อัตโนมัติ)</option>
+                        </select>
+                    </div>
+
+                    <button onclick="togglePiP()" class="w-9 h-9 rounded-xl bg-slatex-800 hover:bg-slatex-700 text-slate-300 border border-slate-700 flex items-center justify-center transition" title="จอซ้อนทับ (PiP)">
+                        <i class="fa-regular fa-window-restore text-xs"></i>
+                    </button>
+
+                    <button onclick="toggleFullscreen()" class="w-9 h-9 rounded-xl bg-slatex-800 hover:bg-slatex-700 text-slate-200 border border-slate-700 flex items-center justify-center transition" title="ขยายเต็มหน้าจอ">
+                        <i class="fa-solid fa-expand text-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Channel Directory & Dynamic Filter (รายการช่องสตรีมด้านล่าง) -->
+        <section class="bg-slatex-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-bold text-sm sm:text-base text-white flex items-center gap-2">
+                        <i class="fa-solid fa-tv text-emerald-400"></i>
+                        รายการช่องสตรีม (m3u8)
+                    </h2>
+                    <span id="channel-total-badge" class="text-xs bg-slatex-800 text-emerald-400 px-2.5 py-0.5 rounded-full font-semibold border border-slate-700">
+                        0 ช่อง
+                    </span>
+                </div>
+
+                <!-- Search Box -->
+                <div class="relative w-full md:w-72">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-magnifying-glass text-slate-500 text-xs"></i>
+                    </div>
+                    <input type="text" id="channel-search-input" oninput="renderChannelList()"
+                        placeholder="ค้นหาชื่อช่อง หรือหมวดหมู่..."
+                        class="w-full bg-slatex-950 border border-slate-700/90 focus:border-emerald-500 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 outline-none transition">
+                </div>
+            </div>
+
+            <!-- Dynamic Category Filter Pills -->
+            <div id="category-filters" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+                <!-- ปุ่มหมวดหมู่สร้างอัตโนมัติ -->
+            </div>
+
+            <!-- Channel Grid Container -->
+            <div id="channel-list-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[360px] overflow-y-auto p-1">
+                <!-- การ์ดรายการช่องแสดงที่นี่ -->
+            </div>
+        </section>
+
+        <!-- 4. Personal Playlist Manager (เพิ่มช่อง .m3u8 ส่วนตัว & จัดการเพลย์ลิสต์) -->
+        <section id="playlist-manager-section" class="bg-slatex-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                <div>
+                    <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-folder-plus text-emerald-400"></i>
+                        เพิ่มช่อง .m3u8 ส่วนตัว & จัดการเพลย์ลิสต์ (LocalStorage)
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-0.5">ช่องที่เพิ่มจะถูกบันทึกลงเบราว์เซอร์อัตโนมัติ สามารถติดดาวช่องโปรด ค้นหา และส่งออกเป็นไฟล์ .m3u ได้</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="openImportModal()" class="bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/40 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-import"></i> นำเข้าไฟล์ M3U
+                    </button>
+                    <button onclick="exportAllChannelsM3U()" class="bg-slatex-800 hover:bg-slatex-700 text-slate-200 border border-slate-700 px-3.5 py-2 rounded-xl text-xs font-medium transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-export text-emerald-400"></i> ส่งออก .m3u
+                    </button>
+                    <button onclick="resetDefaultChannels()" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-rotate-left"></i> รีเซ็ตค่าเริ่มต้น
+                    </button>
+                </div>
+            </div>
+
+            <!-- Add Channel Form -->
+            <form onsubmit="addNewCustomChannel(event)" class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                <div class="md:col-span-3 space-y-1.5">
+                    <label class="text-xs font-medium text-slate-300">ชื่อช่อง *</label>
+                    <input type="text" id="new-channel-name" required placeholder="เช่น Mux Sports 1 HD"
+                        class="w-full bg-slatex-950 border border-slate-700 focus:border-emerald-500 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 outline-none">
+                </div>
+                <div class="md:col-span-3 space-y-1.5">
+                    <label class="text-xs font-medium text-slate-300">หมวดหมู่</label>
+                    <input type="text" id="new-channel-category" placeholder="เช่น กีฬาต่างประเทศ, บอลไทย"
+                        class="w-full bg-slatex-950 border border-slate-700 focus:border-emerald-500 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 outline-none" value="กีฬาต่างประเทศ">
+                </div>
+                <div class="md:col-span-4 space-y-1.5">
+                    <label class="text-xs font-medium text-slate-300">ลิงก์สตรีม 
