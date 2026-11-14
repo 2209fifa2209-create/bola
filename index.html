@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="th" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STREAMPRO M3U8 - เครื่องเล่นดูบอลสด & จัดการเพลย์ลิสต์ HLS</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- HLS.js สำหรับสตรีมมิ่ง .m3u8 -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.11"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts: Prompt & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Prompt', 'Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        slatex: {
+                            950: '#060911',
+                            900: '#0c1220',
+                            800: '#141e33',
+                            700: '#1e2c4a',
+                        },
+                        emerald: {
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0c1220; }
+        ::-webkit-scrollbar-thumb { background: #1e2c4a; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #10b981; }
+        .video-wrapper { aspect-ratio: 16 / 9; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slatex-950 text-slate-100 min-h-screen flex flex-col selection:bg-emerald-500 selection:text-slatex-950">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Main Application Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5 space-y-5">
+
+        <!-- Quick Stream Bar & Playlist Actions -->
+        <section class="bg-slatex-900 border border-slate-800 rounded-2xl p-3.5 sm:p-4 shadow-xl">
+            <div class="flex flex-col xl:flex-row items-stretch xl:items-center gap-3">
+                <div class="flex items-center justify-between xl:justify-start gap-2 shrink-0">
+                    <div class="flex items-center gap-2 text-xs sm:text-sm font-semibold text-emerald-400">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>ลิงก์สตรีมด่วน:</span>
+                    </div>
+                    <!-- ปุ่มนำเข้า/ส่งออก M3U สำหรับหน้าจอมือถือและแท็บเล็ต -->
+                    <div class="flex xl:hidden items-center gap-1.5">
+                        <button onclick="openImportModal()" class="bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/40 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-import"></i> นำเข้า M3U
+                        </button>
+                        <button onclick="exportAllChannelsM3U()" class="bg-slatex-800 hover:bg-slatex-700 text-slate-300 border border-slate-700 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition flex items-center gap-1" title="ส่งออกไฟล์ .m3u">
+                            <i class="fa-solid fa-file-export text-emerald-400"></i> .m3u
+                        </button>
+                    </div>
+                </div>
+
+                <div class="relative flex-grow">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-link text-slate-500 text-xs"></i>
+                    </div>
+                    <input type="text" id="quick-m3u8-url"
+                        placeholder="วางลิงก์สตรีม .m3u8 ที่นี่ (เช่น https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8)"
+                        class="w-full bg-slatex-950 border border-slate-700/90 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl pl-9 pr-9 py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition">
+                    <button onclick="clearQuickInput()" title="ล้างช่องข้อความ" class="absolute inset-y-0 right-2 px-2 text-slate-500 hover:text-slate-300 text-xs">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0">
+                    <button onclick="playQuickStream()" class="flex-1 sm:flex-none bg-emerald-500 hover:bg-emerald-600 text-slatex-950 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition flex items-center justify-center gap-2 shadow-md shadow-emerald-500/20">
+                        <i class="fa-solid fa-play"></i> เล่นทันที
+                    </button>
+                    <button onclick="playPublicTestStream()" class="flex-1 sm:flex-none bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition flex items-center justify-center gap-1.5" title="ทดสอบด้วยสตรีม .m3u8 สาธารณะที่เล่นได้จริง">
+                        <i class="fa-solid fa-vial"></i>
+                        <span>ทดสอบสตรีม</span>
+                    </button>
+
+                    <!-- ปุ่มนำเข้า/ส่งออก M3U สำหรับหน้าจอเดสก์ท็อป -->
+                    <div class="hidden xl:flex items-center gap-2 pl-2 border-l border-slate-800">
+                        <button onclick="openImportModal()" class="bg-slatex-800 hover:bg-slatex-700 text-emerald-400 border border-emerald-500/40 px-3.5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-import"></i> นำเข้า M3U / M3U8
+                        </button>
+                        <button onclick="exportAllChannelsM3U()" class="bg-slatex-800 hover:bg-slatex-700 text-slate-200 border border-slate-700 px-3 py-2.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5" title="ดาวน์โหลดเพลย์ลิสต์ทั้งหมดเป็นไฟล์ .m3u">
+                            <i class="fa-solid fa-file-export text-emerald-400"></i> ส่งออก .m3u
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Main Player & Channel Directory Grid (Clean & Focus Layout) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+            <!-- Left Column: HLS Video Player & Real-time Telemetry (8 Cols) -->
+            <div class="lg:col-span-8 space-y-4">
+                <div class="bg-slatex-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+
+                    <!-- Player Header: Real-time Stream Status & Telemetry -->
+                    <div class="px-4 py-3 bg-slatex-900 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <!-- Live Connection Pill -->
+                            <div id="connection-badge" class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-xs font-bold flex items-center gap-1.5 shrink-0">
+                                <span id="connection-dot" class="w-2 h-2 rounded-full bg-slate-400"></span>
+                                <span id="connection-text">พร้อมใช้งาน</span>
+                            </div>
+                            <div class="min-w-0">
+                                <div id="now-playing-category" class="text-[11px] text-emerald-400 font-medium truncate">หมวดหมู่: กีฬาต่างประเทศ</div>
+                                <h1 id="now-playing-title" class="text-sm sm:text-base font-bold text-white truncate">Mux Sports 1 (FHD 1080p)</h1>
+                            </div>
+                        </div>
+
+                        <!-- Real-time Resolution / Bitrate / Buffer Telemetry -->
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span id="stream-buffer-badge" class="hidden sm:inline-flex items-center gap-1 text-[11px] font-mono bg-slatex-950 text-slate-300 border border-slate-800 px-2.5 py-1 rounded-lg" title="ปริมาณข้อมูลวิดีโอที่บัฟเฟอร์ล่วงหน้า">
+                                <i class="fa-solid fa-layer-group text-emerald-400 text-[10px]"></i>
+                                <span id="buffer-value">0.0s</span>
+                            </span>
+                            <span id="stream-resolution-badge" class="text-[11px] font-mono bg-slatex-950 text-emerald-400 border border-slate-800 px-2.5 py-1 rounded-lg">
+                                HLS • AUTO
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Video Frame -->
+                    <div id="player-frame" class="relative w-full bg-black video-wrapper group select-none">
+                        <video id="hls-video" class="w-full h-full object-contain bg-black" playsinline autoplay></video>
+
+                        <!-- Floating Unmute Prompt (แสดงเฉพาะตอนเบราว์เซอร์บล็อกเสียงอัตโนมัติครั้งแรก) -->
+                        <button id="unmute-prompt-btn" onclick="unmuteAndPlayFull()" class="hidden absolute top-4 left-4 z-30 bg-emerald-500 hover:bg-emerald-400 text-slatex-950 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-2xl shadow-emerald-500/40 border-2 border-white/80 flex items-center gap-2 transition transform hover:scale-105 animate-bounce">
+                            <span>🔊 คลิกเพื่อเปิดเสียง (Unmute)</span>
+                        </button>
+
+                        <!-- Diagnostic Overlay (Loading / Error / CORS / Mixed Content) -->
+                        <div id="player-overlay" class="absolute inset-0 bg-slatex-950/92 backdrop-blur-sm flex flex-col items-center justify-center p-5 sm:p-8 text-center z-20 hidden">
+                            <!-- Loading Spinner -->
+                            <div id="overlay-loading" class="flex flex-col items-center">
+                                <div class="w-12 h-12 border-4 border-slate-700 border-t-emerald-500 rounded-full animate-spin mb-3"></div>
+                                <p class="text-sm sm:text-base font-semibold text-white">กำลังเชื่อมต่อสตรีม .m3u8...</p>
+                                <p class="text-xs text-slate-400 mt-1">กำลังโหลด Manifest และระดับความละเอียดวิดีโอ</p>
+                            </div>
+
+                            <!-- Error / CORS / Mixed Content Box -->
+                            <div id="overlay-error" class="hidden max-w-lg flex flex-col items-center">
+                                <div class="w-12 h-12 rounded-2xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 text-2xl mb-3">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                </div>
+                                <h3 id="error-title" class="text-base font-bold text-white">ไม่สามารถเล่นสตรีมนี้ได้</h3>
+                                <p id="error-reason" class="text-xs sm:text-sm text-slate-300 mt-1.5 leading-relaxed"></p>
+                                <div id="error-solution" class="mt-2.5 bg-slatex-900 border border-slate-800 rounded-xl p-3 text-left text-[11px] sm:text-xs text-slate-400 w-full"></div>
+                                <div class="mt-4 flex flex-wrap items-center justify-center gap-2">
+                                    <button onclick="reloadStream()" class="px-4 py-2 bg-slatex-800 hover:bg-slatex-700 text-white border border-slate-700 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
+                                        <i class="fa-solid fa-rotate-right text-emerald-400"></i> ลองเชื่อมต่อใหม่
+                                    </button>
+                                    <button onclick="playPublicTestStream()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-slatex-950 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                                        <i class="fa-solid fa-vial"></i> ทดสอบสตรีมสาธารณะ
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Custom Pro Player Control Bar -->
+                    <div class="px-3 sm:px-4 py-3 bg-slatex-900 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                        <!-- Left Controls: Play/Pause, Reload, Volume -->
+                        <div class="flex items-center gap-2 sm:gap-2.5">
+                            <button id="btn-play-pause" onclick="togglePlayPause()" class="w-9 h-9 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slatex-950 flex items-center justify-center transition shadow-md shadow-emerald-500/20" title="เล่น / หยุดชั่วคราว">
+                                <i id="icon-play-pause" class="fa-solid fa-pause text-sm"></i>
+                            </button>
+
+                            <button onclick="reloadStream()" class="px-3 h-9 rounded-xl bg-slatex-800 hover:bg-slatex-700 text-slate-200 border border-slate-700 text-xs font-medium flex items-center gap-1.5 transition" title="รีโหลดสัญญาณเมื่อภาพกระตุก">
+                                <i class="fa-solid fa-rotate-right text-emerald-400"></i>
+                                <span class="hidden sm:inline">Reload</span>
+                            </button>
+
+                            <!-- Volume Slider -->
+                            <div class="flex items-center gap-2 bg-slatex-800/80 border border-slate-700/80 px-2.5 h-9 rounded-xl">
+                                <button onclick="toggleMute()" class="text-slate-300 hover:text-emerald-400 transition w-5 text-center" title="เปิด/ปิดเสียง">
+                                    <i id="icon-volume" class="fa-solid fa-volume-high text-sm text-emerald-400"></i>
+                                </button>
+                                <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="1" oninput="changeVolume(this.value)"
+                                    class="w-16 sm:w-20 accent-emerald-500 cursor-pointer h-1.5 bg-slate-700 rounded-lg">
+                            </div>
+                        </div>
+
+                        <!-- Right Controls: Quality Levels, PiP, Fullscreen -->
+                        <div class="flex items-center gap-2">
+                            <!-- Quality Selector -->
+                            <div class="flex items-center gap-1.5 bg-slatex-800 border border-slate-700 rounded-xl px-2.5 h-9">
+                                <i class="fa-solid fa-sliders text-emerald-400 text-xs"></i>
+                                <span class="text-[11px] text-slate-400 hidden sm:inline">ความละเอียด:</span>
+                                <select id="quality-selector" onchange="changeStreamQuality(this.value)" class="bg-transparent text-xs font-semibold text-white outline-none cursor-pointer pr-1">
+                                    <option value="-1" class="bg-slatex-900">Auto (อัตโนมัติ)</option>
+                                </select>
+                            </div>
+
+                            <!-- Picture-in-Picture (PiP) -->
+                            <button onclick="togglePiP()" class="w-9 h-9 rounded-xl bg-slatex-800 hover:bg-slatex-700 text-slate-300 border border-slate-700 flex items-center justify-center transition" title="โหมดจอซ้อนทับ (Picture-in-Picture)">
+                                <i class="fa-regular fa-window-restore text-xs"></i>
+                            </button>
+
+                            <!-- Fullscreen -->
+                            <button onclick="toggleFullscreen()" class="w-9 h-9 rounded-xl bg-slatex-800 hover:bg-slatex-700 text-slate-200 border border-slate-700 flex items-center justify-center transition" title="ขยายเต็มหน้าจอ">
+                                <i class="fa-solid fa-expand text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Channel Directory & Dynamic Filter (4 Cols) -->
+            <div class="lg:col-span-4 bg-slatex-900 border border-slate-800 rounded-2xl flex flex-col h-[520px] lg:h-[545px] shadow-xl overflow-hidden">
+                <!-- Sidebar Header -->
+                <div class="p-4 border-b border-slate-800 space-y-3 bg-slatex-900">
+                    <div class="flex items-center justify-between">
+                        <h2 class="font-bold text-sm sm:text-base text-white flex items-center gap-2">
+                            <i class="fa-solid fa-tv text-emerald-400"></i>
+                            รายการช่องสตรีม (.m3u8)
+                        </h2>
+                        <span id="channel-total-badge" class="text-xs bg-slatex-800 text-emerald-400 px-2.5 py-0.5 rounded-full font-semibold border border-slate-700">
+                            0 ช่อง
+                        </span>
+                    </div>
+
+                    <!-- Search Box -->
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-magnifying-glass text-slate-500 text-xs"></i>
+                        </div>
+                        <input type="text" id="channel-search-input" oninput="renderChannelList()"
+                            placeholder="ค้นหาชื่อช่อง หรือหมวดหมู่..."
+                            class="w-full bg-slatex-950 border border-slate-700/90 focus:border-emerald-500 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 outline-none transition">
+                    </div>
+
+                    <!-- Dynamic Category Filter Pills -->
+                    <div id="category-filters" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+                        <!-- ปุ่มหมวดหมู่สร้างอัตโนมัติ -->
+                    </div>
+                </div>
+
+                <!-- Scrollable Channel Cards -->
+                <div id="channel-list-container" class="flex-grow overflow-y-auto p-3 space-y-2">
+                    <!-- การ์ดรายการช่องแสดงที่นี่ -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Personal Playlist Manager (ฟอร์มเพิ่มช่อง .m3u8 ส่วนตัว & จัดการเพลย์ลิสต์) -->
+        <section id="playlist-manager-section" class="bg-slatex-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                <div>
+                    <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-folder-plus text-emerald-400"></i>
+                        เพิ่มช่อง .m3u8 ส่วนตัว & จัดการเพลย์ลิสต์ (LocalStorage)
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-0.5">ช่องที่เพิ่มจะถูกบันทึกลงเบราว์เซอร์อัตโนมัติ สามารถติดดาวช่องโปรด ค้นหา และส่งออกเป็นไฟล์ .m3u ได้</p>
+                </div>
+
+                <!-- Reset Default & Export Actions -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="openImportModal()" class="bg-slatex-800 hover:bg-slatex-700 text-slate-200 border border-slate-700 px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-import text-emerald-400"></i> นำเข้าไฟล์ M3U
+                    </button>
+                    <button onclick="exportAllChannelsM3U()" class="bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/40 px-3 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-download"></i> ส่งออก .m3u
+                    </button>
+                    <button onclick="resetToDefaultChannels()" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-1.5" title="คืนค่าช่องรายการมาตรฐานทั้งหมด">
+                        <i class="fa-solid fa-arrow-rotate-left"></i> รีเซ็ตค่าเริ่มต้น
+                    </button>
+                </div>
+            </div>
+
+            <!-- Add Channel Form -->
+            <form id="add-channel-form" onsubmit="handleAddChannel(event)" class="grid grid-cols-1 sm:grid-cols-12 gap-3 bg-slatex-950/70 p-4 rounded-xl border border-slate-800">
+                <div class="sm:col-span-3">
+                    <label class="block text-[11px] text-slate-400 mb-1">ชื่อช่องรายการ *</label>
+                    <input type="text" id="form-channel-name" required placeholder="เช่น BeIN Sports 1 HD"
+                        class="w-full bg-slatex-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3 py-2 text-xs text-white outline-none">
+                </div>
+                <div class="sm:col-span-3">
+                    <label class="block text-[11px] text-slate-400 mb-1">หมวดหมู่ (เลือกหรือพิมพ์ใหม่)</label>
+                    <input type="text" id="form-channel-group" list="category-suggestions" placeholder="เช่น พรีเมียร์ลีก, บอลไทย" value="พรีเมียร์ลีก"
+                        class="w-full bg-slatex-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3 py-2 text-xs text-white outline-none">
+                    <datalist id="category-suggestions">
+                        <option value="พรีเมียร์ลีก">
+                        <option value="บอลไทย">
+                        <option value="กีฬาต่างประเทศ">
+                        <option value="ทีวีออนไลน์">
+                    </datalist>
+                </div>
+                <div class="sm:col-span-4">
+                    <label class="block text-[11px] text-slate-400 mb-1">ลิงก์สตรีม (.m3u8 URL) *</label>
+                    <input type="url" id="form-channel-url" required placeholder="https://.../playlist.m3u8"
+                        class="w-full bg-slatex-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3 py-2 text-xs text-white outline-none">
+                </div>
+                <div class="sm:col-span-2 flex items-end">
+                    <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slatex-950 font-bold py-2 px-3 rounded-xl text-xs transition flex items-center justify-center gap-1.5 h-[34px] shadow-md shadow-emerald-500/15">
+                        <i class="fa-solid fa-plus"></i> <span>เพิ่มช่อง</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slatex-900 border-t border-slate-800 py-5 mt-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-satellite-dish text-emerald-500"></i>
+                <span class="font-semibold text-slate-300">STREAMPRO M3U8</span>
+                <span>• เครื่องเล่น HLS Stream Player & M3U Playlist Manager</span>
+            </div>
+            <div>รองรับมาตรฐาน #EXTM3U, #EXTINF, Quality Levels และ Safari Native HLS</div>
+        </div>
+    </footer>
+
+    <!-- Modal: นำเข้าเพลย์ลิสต์ .M3U / .M3U8 -->
+    <div id="import-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-slatex-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-file-code text-emerald-400"></i>
+                    นำเข้าเพลย์ลิสต์ .M3U / .M3U8
+                </h3>
+                <button onclick="closeImportModal()" class="text-slate-400 hover:text-white w-8 h-8 rounded-lg bg-slatex-800 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <p class="text-xs text-slate-400 leading-relaxed">
+                อัปโหลดไฟล์ <code class="text-emerald-400">.m3u</code> / <code class="text-emerald-400">.m3u8</code> จากเครื่อง หรือวางโค้ดเพลย์ลิสต์ ระบบจะดึงข้อมูลแท็ก <code class="text-emerald-400">#EXTINF</code> ทั้งชื่อช่อง, <code class="text-emerald-400">group-title</code> และ <code class="text-emerald-400">tvg-logo</code> ให้อัตโนมัติ
+            </p>
+
+            <!-- File Upload Dropzone -->
+            <div class="flex flex-col sm:flex-row items-center gap-3 bg-slatex-950 p-3.5 rounded-xl border border-dashed border-slate-700">
+                <label class="cursor-pointer bg-slatex-800 hover:bg-slatex-700 text-white border border-slate-600 px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2 shrink-0">
+                    <i class="fa-solid fa-upload text-emerald-400"></i>
+                    <span>เลือกไฟล์ .m3u / .m3u8 จากเครื่อง</span>
+                    <input type="file" id="m3u-file-input" accept=".m3u,.m3u8,.txt" onchange="handleM3UFileUpload(event)" class="hidden">
+                </label>
+                <span id="uploaded-file-name" class="text-xs text-slate-400 truncate">ยังไม่ได้เลือกไฟล์ (หรือวางข้อความด้านล่าง)</span>
+            </div>
+
+            <!-- Paste M3U Textarea -->
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <label class="text-xs font-medium text-slate-300">วางโค้ดเพลย์ลิสต์ M3U ที่นี่:</label>
+                    <button onclick="fillSampleM3UText()" class="text-[11px] text-emerald-400 hover:underline">ใส่ตัวอย่างโค้ด M3U</button>
+                </div>
+                <textarea id="m3u-paste-textarea" rows="6"
+                    placeholder="#EXTM3U&#10;#EXTINF:-1 tvg-logo=&quot;https://...&quot; group-title=&quot;พรีเมียร์ลีก&quot;,ช่องกีฬา 1 HD&#10;https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+                    class="w-full bg-slatex-950 border border-slate-700 focus:border-emerald-500 rounded-xl p-3 text-xs font-mono text-slate-200 placeholder-slate-600 outline-none"></textarea>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+                <button onclick="closeImportModal()" class="px-4 py-2 rounded-xl bg-slatex-800 hover:bg-slatex-700 text-slate-300 text-xs font-medium transition">ยกเลิก</button>
+                <button onclick="processM3UImport()" class="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slatex-950 text-xs font-bold transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> แยกช่องรายการทันที
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        /**
+         * =====================================================================
+         * 1. ข้อมูลช่องตั้งต้น (Default Channels) & LocalStorage State
+         * =====================================================================
+         */
+        const STORAGE_KEY = 'streampro_m3u8_channels_v3';
+
+        const DEFAULT_CHANNELS = [
+            {
+                id: 'ch-mux-1080',
+                name: 'Mux Sports 1 (FHD 1080p)',
+                group: 'กีฬาต่างประเทศ',
+                logo: '',
+                favorite: true,
+                url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'
+            },
+            {
+                id: 'ch-akamai-hd',
+                name: 'Premier Football HD 1',
+                group: 'พรีเมียร์ลีก',
+                logo: '',
+                favorite: true,
+                url: 'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8'
+            },
+            {
+                id: 'ch-apple-4k',
+                name: 'Premier Plus Ultra HD',
+                group: 'พรีเมียร์ลีก',
+                logo: '',
+                favorite: false,
+                url: 'https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8'
+            },
+            {
+                id: 'ch-thai-league',
+                name: 'Thai Ball Live HD 1',
+                group: 'บอลไทย',
+                logo: '',
+                favorite: false,
+                url: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8'
+            },
+            {
+                id: 'ch-world-sports',
+                name: 'World Sports Arena 24H',
+                group: 'กีฬาต่างประเทศ',
+                logo: '',
+                favorite: false,
+                url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'
+            }
+        ];
+
+        let hls = null;
+        let channels = [];
+        let activeCategory = 'ALL';
+        let telemetryTimer = null;
+        let currentStream = {
+            id: null,
+            name: '',
+            group: '',
+            url: ''
+        };
+
+        function loadChannelsFromStorage() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        channels = parsed;
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.error('Storage read error:', e);
+            }
+            channels = JSON.parse(JSON.stringify(DEFAULT_CHANNELS));
+            saveChannelsToStorage();
+        }
+
+        function saveChannelsToStorage() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(channels));
+            } catch (e) {
+                showToast('ไม่สามารถบันทึกลง LocalStorage ได้', 'warning');
+            }
+        }
+
+        /**
+         * =====================================================================
+         * 2. HLS.js Stream Player Engine & Real-time Telemetry
+         * =====================================================================
+         */
+        async function attemptPlayWithSound(video) {
+            const unmuteBtn = document.getElementById('unmute-prompt-btn');
+            const volSlider = document.getElementById('volume-slider');
+
+            video.muted = false;
+            if (video.volume === 0) {
+                video.volume = 1.0;
+            }
+            if (volSlider) {
+                volSlider.value = video.volume;
+            }
+
+            try {
+                await video.play();
+                unmuteBtn.classList.add('hidden');
+                updatePlayPauseIcon(true);
+                updateVolumeIcon();
+            } catch (err) {
+                // หากเบราว์เซอร์บล็อก Autoplay แบบมีเสียงตอนโหลดหน้าแรก ให้เล่นแบบปิดเสียงชั่วคราวพร้อมแสดงปุ่มเปิดเสียง
+                video.muted = true;
+                updateVolumeIcon();
+                try {
+                    await video.play();
+                    unmuteBtn.classList.remove('hidden');
+                    updatePlayPauseIcon(true);
+                } catch (e) {
+                    updatePlayPauseIcon(false);
+                }
+            }
+        }
+
+        function unmuteAndPlayFull() {
+            const video = document.getElementById('hls-video');
+            const unmuteBtn = document.getElementById('unmute-prompt-btn');
+            const volSlider = document.getElementById('volume-slider');
+
+            video.muted = false;
+            video.volume = 1.0;
+            if (volSlider) volSlider.value = 1;
+            unmuteBtn.classList.add('hidden');
+
+            if (video.paused) {
+                video.play();
+                updatePlayPauseIcon(true);
+            }
+            updateVolumeIcon();
+            showToast('เปิดเสียงเรียบร้อยแล้ว (100%)', 'success');
+        }
+
+        function loadStream(url, title = 'สตรีมถ่ายทอดสด', category = 'HLS Stream', channelId = null) {
+            const video = document.getElementById('hls-video');
+            const qualitySelect = document.getElementById('quality-selector');
+
+            currentStream = { id: channelId, name: title, group: category, url: url };
+
+            // ตั้งค่าเตรียมเปิดเสียงทุกครั้งที่เรียกโหลดสตรีม
+            video.muted = false;
+            if (video.volume === 0) video.volume = 1.0;
+            document.getElementById('volume-slider').value = video.volume;
+            updateVolumeIcon();
+
+            document.getElementById('now-playing-title').textContent = title;
+            document.getElementById('now-playing-category').textContent = `หมวดหมู่: ${category}`;
+            document.getElementById('quick-m3u8-url').value = url;
+            setConnectionStatus('connecting', 'กำลังเชื่อมต่อ...');
+            showOverlay('loading');
+
+            qualitySelect.innerHTML = '<option value="-1" class="bg-slatex-900">Auto (อัตโนมัติ)</option>';
+
+            if (hls) {
+                hls.destroy();
+                hls = null;
+            }
+
+            if (!url || !url.trim()) {
+                setConnectionStatus('error', 'ไม่มีลิงก์');
+                showOverlay(
+                    'error',
+                    'ไม่พบลิงก์สตรีม .m3u8',
+                    'กรุณากรอก URL ของไฟล์ .m3u8 ในช่องด้านบน หรือเลือกช่องจากรายการด้านขวา',
+                    'คำแนะนำ: ลองกดปุ่ม "ทดสอบสตรีม" เพื่อทดสอบการทำงานของเครื่องเล่น'
+                );
+                return;
+            }
+
+            // ตรวจสอบ Mixed Content (เว็บเป็น HTTPS แต่ลิงก์สตรีมเป็น HTTP)
+            if (window.location.protocol === 'https:' && url.trim().toLowerCase().startsWith('http://')) {
+                setConnectionStatus('error', 'ติด Mixed Content');
+                showOverlay(
+                    'error',
+                    'เบราว์เซอร์บล็อกลิงก์ HTTP บนหน้าเว็บ HTTPS (Mixed Content)',
+                    'ลิงก์สตรีมของคุณขึ้นต้นด้วย http:// ซึ่งเบราว์เซอร์สมัยใหม่จะบล็อกเพื่อความปลอดภัย',
+                    'วิธีแก้ไข: เปลี่ยนลิงก์ต้นทางเป็น https:// หรือดาวน์โหลดไฟล์เว็บนี้ไปเปิดบนเครื่องโดยตรง'
+                );
+                return;
+            }
+
+            if (Hls.isSupported()) {
+                hls = new Hls({
+                    enableWorker: true,
+                    lowLatencyMode: true,
+                    backBufferLength: 60
+                });
+
+                hls.loadSource(url);
+                hls.attachMedia(video);
+
+                hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
+                    populateQualityLevels(data.levels);
+                    hideOverlay();
+                    setConnectionStatus('live', 'LIVE • กำลังเล่น');
+                    attemptPlayWithSound(video);
+                });
+
+                // อัปเดตความละเอียดและ Bitrate แบบเรียลไทม์
+                hls.on(Hls.Events.LEVEL_SWITCHED, function (event, data) {
+                    const level = hls.levels[data.level];
+                    if (level) {
+                        const res = level.height ? `${level.height}p` : `L${data.level + 1}`;
+                        const kbps = level.bitrate ? ` • ${(level.bitrate / 1000000).toFixed(1)} Mbps` : '';
+                        document.getElementById('stream-resolution-badge').textContent = `LIVE ${res}${kbps}`;
+                    }
+                });
+
+                // ตรวจจับ Error (CORS / Network / Media)
+                hls.on(Hls.Events.ERROR, function (event, data) {
+                    if (data.fatal) {
+                        setConnectionStatus('error', 'เชื่อมต่อไม่สำเร็จ');
+                        if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+                            const statusCode = data.response ? data.response.code : 0;
+                            if (statusCode === 0) {
+                                showOverlay(
+                                    'error',
+                                    'ไม่สามารถดึงสัญญาณได้ (ติด CORS Policy หรือเซิร์ฟเวอร์ออฟไลน์)',
+                                    'เซิร์ฟเวอร์ต้นทางของลิงก์ .m3u8 ไม่อนุญาตให้เล่นข้ามโดเมน (Access-Control-Allow-Origin) หรือลิงก์ปิดให้บริการแล้ว',
+                                    'วิธีแก้ไข: 1) ตรวจสอบว่าลิงก์ยังไม่หมดอายุ 2) ใช้ลิงก์สตรีมที่เปิด CORS หรือเปิดผ่านส่วนขยายปลดล็อก CORS บนเบราว์เซอร์'
+                                );
+                            } else {
+                                showOverlay(
+                                    'error',
+                                    `เกิดข้อผิดพลาดเครือข่าย (HTTP ${statusCode})`,
+                                    'ไม่พบไฟล์สตรีม .m3u8 บนเซิร์ฟเวอร์ หรือ Token ของลิงก์หมดอายุแล้ว',
+                                    'วิธีแก้ไข: ขอลิงก์ .m3u8 ชุดใหม่จากผู้ให้บริการ หรือกด "Reload" เพื่อลองเชื่อมต่ออีกครั้ง'
+                                );
+                            }
+                        } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+                            hls.recoverMediaError();
+                        } else {
+                            showOverlay(
+                                'error',
+                                'รูปแบบไฟล์สตรีมไม่รองรับ',
+                                'ลิงก์นี้ไม่ใช่ไฟล์ HLS (.m3u8) ที่ถูกต้อง หรือการเข้ารหัสวิดีโอไม่รองรับบนเบราว์เซอร์นี้',
+                                'วิธีแก้ไข: ตรวจสอบว่า URL ลงท้ายด้วย .m3u8 และรองรับวิดีโอโคเดก H.264 / AAC'
+                            );
+                            hls.destroy();
+                        }
+                    }
+                });
+
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                // Safari Native HLS (iOS / macOS)
+                video.src = url;
+                video.addEventListener('loadedmetadata', () => {
+                    hideOverlay();
+                    setConnectionStatus('live', 'LIVE • Safari HLS');
+                    document.getElementById('stream-resolution-badge').textContent = 'NATIVE HLS';
+                    attemptPlayWithSound(video);
+                }, { once: true });
+
+                video.addEventListener('error', () => {
+                    setConnectionStatus('error', 'เล่นไม่ได้');
+                    showOverlay(
+                        'error',
+                        'ไม่สามารถเล่นสตรีมบน Safari ได้',
+                        'ลิงก์สตรีมอาจเสีย หมดอายุ หรือติดข้อจำกัดสิทธิ์การเข้าถึงจากต้นทาง',
+                        'วิธีแก้ไข: ตรวจสอบลิงก์ .m3u8 อีกครั้ง หรือลองทดสอบด้วยสตรีมสาธารณะ'
+                    );
+                }, { once: true });
+            } else {
+                showOverlay(
+                    'error',
+                    'เบราว์เซอร์ไม่รองรับ HLS',
+                    'เบราว์เซอร์ของคุณไม่รองรับการเล่นวิดีโอผ่าน Media Source Extensions',
+                    'วิธีแก้ไข: กรุณาใช้งานผ่าน Google Chrome, Microsoft Edge, Safari หรือ Firefox เวอร์ชันล่าสุด'
+                );
+            }
+
+            renderChannelList();
+        }
+
+        // ดึงรายการความคมชัดจริงจาก hls.levels
+        function populateQualityLevels(levels) {
+            const select = document.getElementById('quality-selector');
+            select.innerHTML = '<option value="-1" class="bg-slatex-900">Auto (อัตโนมัติ)</option>';
+
+            if (!levels || levels.length === 0) return;
+
+            const sorted = levels.map((lvl, idx) => ({
+                index: idx,
+                height: lvl.height || 0,
+                bitrate: Math.round((lvl.bitrate || 0) / 1000)
+            })).sort((a, b) => b.height - a.height);
+
+            sorted.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.index;
+                opt.className = 'bg-slatex-900';
+                opt.textContent = item.height > 0
+                    ? `${item.height}p (${item.bitrate} kbps)`
+                    : `ระดับ ${item.index + 1} (${item.bitrate} kbps)`;
+                select.appendChild(opt);
+            });
+        }
+
+        function changeStreamQuality(levelIndex) {
+            if (!hls) return;
+            const idx = parseInt(levelIndex, 10);
+            hls.currentLevel = idx;
+            if (idx === -1) {
+                showToast('ปรับความละเอียดเป็น Auto (อัตโนมัติ)', 'info');
+                document.getElementById('stream-resolution-badge').textContent = 'LIVE • AUTO';
+            } else {
+                const lvl = hls.levels[idx];
+                const label = lvl && lvl.height ? `${lvl.height}p` : `Level ${idx + 1}`;
+                showToast(`ล็อกความละเอียดวิดีโอที่ ${label}`, 'success');
+                document.getElementById('stream-resolution-badge').textContent = `LIVE ${label}`;
+            }
+        }
+
+        // อัปเดตสถานะ Buffer วินาทีล่วงหน้าแบบเรียลไทม์
+        function startBufferTelemetry() {
+            if (telemetryTimer) clearInterval(telemetryTimer);
+            telemetryTimer = setInterval(() => {
+                const video = document.getElementById('hls-video');
+                const bufEl = document.getElementById('buffer-value');
+                if (video && video.buffered && video.buffered.length > 0 && !video.paused) {
+                    const current = video.currentTime;
+                    for (let i = 0; i < video.buffered.length; i++) {
+                        if (video.buffered.start(i) <= current && video.buffered.end(i) >= current) {
+                            const ahead = Math.max(0, video.buffered.end(i) - current);
+                            bufEl.textContent = `${ahead.toFixed(1)}s`;
+                            return;
+                        }
+                    }
+                }
+                bufEl.textContent = '0.0s';
+            }, 1000);
+        }
+
+        // Player Controls
+        function togglePlayPause() {
+            const video = document.getElementById('hls-video');
+            if (video.paused) {
+                if (video.muted) {
+                    video.muted = false;
+                    if (video.volume === 0) video.volume = 1.0;
+                    document.getElementById('volume-slider').value = video.volume;
+                    document.getElementById('unmute-prompt-btn').classList.add('hidden');
+                    updateVolumeIcon();
+                }
+                video.play();
+                updatePlayPauseIcon(true);
+            } else {
+                video.pause();
+                updatePlayPauseIcon(false);
+            }
+        }
+
+        function updatePlayPauseIcon(isPlaying) {
+            document.getElementById('icon-play-pause').className = isPlaying
+                ? 'fa-solid fa-pause text-sm'
+                : 'fa-solid fa-play text-sm ml-0.5';
+        }
+
+        function reloadStream() {
+            if (currentStream.url) {
+                showToast('กำลัง Reload สัญญาณสตรีมใหม่...', 'info');
+                loadStream(currentStream.url, currentStream.name, currentStream.group, currentStream.id);
+            }
+        }
+
+        function toggleMute() {
+            const video = document.getElementById('hls-video');
+            const unmuteBtn = document.getElementById('unmute-prompt-btn');
+            video.muted = !video.muted;
+            if (!video.muted) {
+                if (video.volume === 0) {
+                    video.volume = 1.0;
+                    document.getElementById('volume-slider').value = 1;
+                }
+                unmuteBtn.classList.add('hidden');
+            }
+            updateVolumeIcon();
+        }
+
+        function changeVolume(val) {
+            const video = document.getElementById('hls-video');
+            const unmuteBtn = document.getElementById('unmute-prompt-btn');
+            video.volume = parseFloat(val);
+            video.muted = (video.volume === 0);
+            if (!video.muted) {
+                unmuteBtn.classList.add('hidden');
+            }
+            updateVolumeIcon();
+        }
+
+        function changeVolume(val) {
+            const video = document.getElementById('hls-video');
+            video.volume = parseFloat(val);
+            video.muted = (video.volume === 0);
+            updateVolumeIcon();
+        }
+
+        function updateVolumeIcon() {
+            const video = document.getElementById('hls-video');
+            const icon = document.getElementById('icon-volume');
+            if (video.muted || video.volume === 0) {
+                icon.className = 'fa-solid fa-volume-xmark text-sm text-amber-400';
+            } else if (video.volume < 0.5) {
+                icon.className = 'fa-solid fa-volume-low text-sm text-emerald-400';
+            } else {
+                icon.className = 'fa-solid fa-volume-high text-sm text-emerald-400';
+            }
+        }
+
+        async function togglePiP() {
+            const video = document.getElementById('hls-video');
+            try {
+                if (document.pictureInPictureElement) {
+                    await document.exitPictureInPicture();
+                } else if (document.pictureInPictureEnabled) {
+                    await video.requestPictureInPicture();
+                } else {
+                    showToast('เบราว์เซอร์นี้ไม่รองรับโหมด Picture-in-Picture', 'warning');
+                }
+            } catch (err) {
+                showToast('ไม่สามารถเปิดโหมดจอซ้อนทับได้ในขณะนี้', 'warning');
+            }
+        }
+
+        function toggleFullscreen() {
+            const frame = document.getElementById('player-frame');
+            const video = document.getElementById('hls-video');
+            if (!document.fullscreenElement) {
+                if (frame.requestFullscreen) {
+                    frame.requestFullscreen();
+                } else if (video.webkitEnterFullscreen) {
+                    video.webkitEnterFullscreen();
+                }
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        function setConnectionStatus(state, text) {
+            const badge = document.getElementById('connection-badge');
+            const dot = document.getElementById('connection-dot');
+            document.getElementById('connection-text').textContent = text;
+
+            if (state === 'live') {
+                badge.className = 'px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-xs font-bold flex items-center gap-1.5 shrink-0';
+                dot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-ping';
+            } else if (state === 'connecting') {
+                badge.className = 'px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-bold flex items-center gap-1.5 shrink-0';
+                dot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse';
+            } else {
+                badge.className = 'px-2.5 py-1 rounded-lg bg-red-500/15 border border-red-500/40 text-red-400 text-xs font-bold flex items-center gap-1.5 shrink-0';
+                dot.className = 'w-2 h-2 rounded-full bg-red-500';
+            }
+        }
+
+        function showOverlay(type, title = '', reason = '', solution = '') {
+            const overlay = document.getElementById('player-overlay');
+            const loadingBox = document.getElementById('overlay-loading');
+            const errorBox = document.getElementById('overlay-error');
+
+            overlay.classList.remove('hidden');
+            if (type === 'loading') {
+                loadingBox.classList.remove('hidden');
+                errorBox.classList.add('hidden');
+            } else {
+                loadingBox.classList.add('hidden');
+                errorBox.classList.remove('hidden');
+                document.getElementById('error-title').textContent = title;
+                document.getElementById('error-reason').textContent = reason;
+                const solEl = document.getElementById('error-solution');
+                if (solution) {
+                    solEl.textContent = solution;
+                    solEl.classList.remove('hidden');
+                } else {
+                    solEl.classList.add('hidden');
+                }
+            }
+        }
+
+        function hideOverlay() {
+            document.getElementById('player-overlay').classList.add('hidden');
+        }
+
+        /**
+         * =====================================================================
+         * 3. Quick Stream Bar Actions
+         * =====================================================================
+         */
+        function playQuickStream() {
+            const url = document.getElementById('quick-m3u8-url').value.trim();
+            if (!url) {
+                showToast('กรุณาวางลิงก์ .m3u8 ก่อนกดเล่นทันที', 'warning');
+                return;
+            }
+            loadStream(url, 'สตรีมจากลิงก์ด่วน (Quick URL)', 'Custom Stream', null);
+        }
+
+        function clearQuickInput() {
+            const input = document.getElementById('quick-m3u8-url');
+            input.value = '';
+            input.focus();
+        }
+
+        function playPublicTestStream() {
+            const testUrl = 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
+            loadStream(testUrl, 'Mux Public FHD Test Stream (1080p)', 'สตรีมทดสอบสาธารณะ', 'ch-mux-1080');
+            showToast('กำลังเล่นสตรีมทดสอบสาธารณะที่ใช้งานได้จริง', 'success');
+        }
+
+        /**
+         * =====================================================================
+         * 4. M3U / M3U8 Importer & Exporter
+         * =====================================================================
+         */
+        function openImportModal() {
+            const modal = document.getElementById('import-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeImportModal() {
+            const modal = document.getElementById('import-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function handleM3UFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            document.getElementById('uploaded-file-name').textContent = `ไฟล์ที่เลือก: ${file.name}`;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('m3u-paste-textarea').value = e.target.result;
+                showToast(`อ่านไฟล์ "${file.name}" สำเร็จ`, 'success');
+            };
+            reader.readAsText(file);
+        }
+
+        function fillSampleM3UText() {
+            document.getElementById('m3u-paste-textarea').value = `#EXTM3U
+#EXTINF:-1 tvg-logo="" group-title="พรีเมียร์ลีก",Super Football 1 FHD
+https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
+#EXTINF:-1 tvg-logo="" group-title="บอลไทย",Thai League Live HD
+https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8
+#EXTINF:-1 tvg-logo="" group-title="กีฬาต่างประเทศ",World Sports 24H
+https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8`;
+        }
+
+        function parseM3UContent(rawText) {
+            const lines = rawText.split(/\r?\n/);
+            const parsed = [];
+            let meta = null;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                if (line.startsWith('#EXTINF:')) {
+                    const logoMatch = line.match(/tvg-logo="([^"]*)"/i);
+                    const groupMatch = line.match(/group-title="([^"]*)"/i);
+                    const commaIdx = line.lastIndexOf(',');
+
+                    meta = {
+                        logo: logoMatch ? logoMatch[1].trim() : '',
+                        group: (groupMatch && groupMatch[1].trim()) ? groupMatch[1].trim() : 'ช่องที่นำเข้า',
+                        name: commaIdx !== -1 ? line.substring(commaIdx + 1).trim() : 'ช่องไม่มีชื่อ'
+                    };
+                } else if (!line.startsWith('#')) {
+                    if (line.startsWith('http://') || line.startsWith('https://')) {
+                        parsed.push({
+                            id: 'imp-' + Date.now() + '-' + parsed.length,
+                            name: meta ? meta.name : `ช่องสตรีม ${parsed.length + 1}`,
+                            group: meta ? meta.group : 'ช่องที่นำเข้า',
+                            logo: meta ? meta.logo : '',
+                            favorite: false,
+                            url: line
+                        });
+                        meta = null;
+                    }
+                }
+            }
+            return parsed;
+        }
+
+        function processM3UImport() {
+            const raw = document.getElementById('m3u-paste-textarea').value.trim();
+            if (!raw) {
+                showToast('กรุณาวางโค้ด M3U หรือเลือกไฟล์ก่อนนำเข้า', 'warning');
+                return;
+            }
+
+            const imported = parseM3UContent(raw);
+            if (imported.length === 0) {
+                showToast('ไม่พบลิงก์สตรีม .m3u8 ที่ถูกต้องในข้อมูลที่นำเข้า', 'warning');
+                return;
+            }
+
+            channels = [...imported, ...channels];
+            saveChannelsToStorage();
+            activeCategory = 'ALL';
+            renderCategoryPills();
+            renderChannelList();
+            closeImportModal();
+
+            // เล่นช่องแรกที่นำเข้าทันที
+            loadStream(imported[0].url, imported[0].name, imported[0].group, imported[0].id);
+            showToast(`นำเข้าสำเร็จทั้งหมด ${imported.length} ช่องรายการ!`, 'success');
+        }
+
+        function exportAllChannelsM3U() {
+            if (channels.length === 0) {
+                showToast('ไม่มีรายการช่องสำหรับส่งออก', 'warning');
+                return;
+            }
+
+            let content = '#EXTM3U\n';
+            channels.forEach(ch => {
+                const logoAttr = ch.logo ? ` tvg-logo="${ch.logo}"` : '';
+                const groupAttr = ch.group ? ` group-title="${ch.group}"` : '';
+                content += `#EXTINF:-1${logoAttr}${groupAttr},${ch.name}\n${ch.url}\n`;
+            });
+
+            const blob = new Blob([content], { type: 'audio/x-mpegurl;charset=utf-8' });
+            const downloadUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = `streampro_channels_${new Date().toISOString().slice(0, 10)}.m3u`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(downloadUrl);
+
+            showToast(`ส่งออกเพลย์ลิสต์ (${channels.length} ช่อง) เป็นไฟล์ .m3u สำเร็จ!`, 'success');
+        }
+
+        /**
+         * =====================================================================
+         * 5. Channel Directory, Search, Category Filter & Favorites
+         * =====================================================================
+         */
+        function renderCategoryPills() {
+            const container = document.getElementById('category-filters');
+            const dynamicGroups = [...new Set(channels.map(ch => ch.group))];
+            const tabs = [
+                { key: 'ALL', label: 'ทั้งหมด' },
+                { key: 'FAVORITES', label: '★ ช่องโปรด' },
+                ...dynamicGroups.map(g => ({ key: g, label: g }))
+            ];
+
+            container.innerHTML = '';
+            tabs.forEach(tab => {
+                const btn = document.createElement('button');
+                const isActive = activeCategory === tab.key;
+                btn.className = isActive
+                    ? 'shrink-0 px-3 py-1 rounded-lg text-xs font-bold bg-emerald-500 text-slatex-950 transition'
+                    : 'shrink-0 px-3 py-1 rounded-lg text-xs font-medium bg-slatex-950 hover:bg-slatex-800 text-slate-400 hover:text-white border border-slate-800 transition';
+                btn.textContent = tab.label;
+                btn.onclick = () => {
+                    activeCategory = tab.key;
+                    renderCategoryPills();
+                    renderChannelList();
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function renderChannelList() {
+            const container = document.getElementById('channel-list-container');
+            const query = document.getElementById('channel-search-input').value.trim().toLowerCase();
+
+            const filtered = channels.filter(ch => {
+                const matchCat =
+                    activeCategory === 'ALL' ? true :
+                    activeCategory === 'FAVORITES' ? Boolean(ch.favorite) :
+                    ch.group === activeCategory;
+                const matchQuery = !query || ch.name.toLowerCase().includes(query) || ch.group.toLowerCase().includes(query);
+                return matchCat && matchQuery;
+            });
+
+            document.getElementById('channel-total-badge').textContent = `${filtered.length} ช่อง`;
+            container.innerHTML = '';
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-slate-500 text-xs">
+                        <i class="fa-solid fa-tv text-2xl mb-2 opacity-40"></i>
+                        <p>ไม่พบช่องรายการในหมวดหมู่นี้</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filtered.forEach(ch => {
+                const isPlaying = currentStream.id === ch.id || (currentStream.url === ch.url && currentStream.name === ch.name);
+                const card = document.createElement('div');
+
+                card.className = `rounded-xl p-2.5 border transition flex items-center gap-3 ${
+                    isPlaying
+                    ? 'bg-emerald-500/15 border-emerald-500 shadow-md shadow-emerald-500/10'
+                    : 'bg-slatex-950/75 hover:bg-slatex-800/80 border-slate-800/90 hover:border-slate-700'
+                }`;
+
+                const logoHtml = ch.logo
+                    ? `<img src="${escapeHtml(ch.logo)}" alt="logo" onerror="this.onerror=null;this.parentElement.innerHTML='<i class=\\'fa-solid fa-tv text-emerald-400 text-sm\\'></i>';" class="w-full h-full object-contain rounded-lg">`
+                    : `<i class="fa-solid fa-tv ${isPlaying ? 'text-slatex-950' : 'text-emerald-400'} text-sm"></i>`;
+
+                card.innerHTML = `
+                    <div onclick="playChannelById('${ch.id}')" class="cursor-pointer flex items-center gap-3 min-w-0 flex-1">
+                        <div class="w-10 h-10 rounded-xl ${isPlaying ? 'bg-emerald-500' : 'bg-slatex-800'} flex items-center justify-center shrink-0 overflow-hidden border border-slate-700/60 p-1">
+                            ${logoHtml}
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <h4 class="text-xs sm:text-sm font-semibold ${isPlaying ? 'text-emerald-300' : 'text-white'} truncate">${escapeHtml(ch.name)}</h4>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <span class="text-[10px] text-slate-400 truncate">${escapeHtml(ch.group)}</span>
+                                ${isPlaying ? '<span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">กำลังเล่น</span>' : ''}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Favorite Star & Delete Actions -->
+                    <div class="flex items-center gap-1 shrink-0">
+                        <button onclick="toggleFavoriteChannel('${ch.id}')" title="${ch.favorite ? 'นำออกจากช่องโปรด' : 'ติดดาวช่องโปรด'}"
+                            class="w-7 h-7 rounded-lg hover:bg-slatex-800 flex items-center justify-center transition ${ch.favorite ? 'text-amber-400' : 'text-slate-600 hover:text-amber-300'}">
+                            <i class="${ch.favorite ? 'fa-solid' : 'fa-regular'} fa-star text-xs"></i>
+                        </button>
+                        <button onclick="deleteChannelById('${ch.id}')" title="ลบช่องนี้"
+                            class="w-7 h-7 rounded-lg hover:bg-red-500/20 text-slate-600 hover:text-red-400 flex items-center justify-center transition">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function playChannelById(id) {
+            const ch = channels.find(item => item.id === id);
+            if (!ch) return;
+            loadStream(ch.url, ch.name, ch.group, ch.id);
+            if (window.innerWidth < 1024) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function toggleFavoriteChannel(id) {
+            channels = channels.map(ch => ch.id === id ? { ...ch, favorite: !ch.favorite } : ch);
+            saveChannelsToStorage();
+            renderChannelList();
+        }
+
+        function deleteChannelById(id) {
+            const target = channels.find(ch => ch.id === id);
+            channels = channels.filter(ch => ch.id !== id);
+            saveChannelsToStorage();
+            renderCategoryPills();
+            renderChannelList();
+            if (target) {
+                showToast(`ลบช่อง "${target.name}" แล้ว`, 'info');
+            }
+        }
+
+        function handleAddChannel(event) {
+            event.preventDefault();
+            const name = document.getElementById('form-channel-name').value.trim();
+            const group = document.getElementById('form-channel-group').value.trim() || 'ช่องส่วนตัว';
+            const url = document.getElementById('form-channel-url').value.trim();
+
+            if (!name || !url) return;
+
+            const newChannel = {
+                id: 'custom-' + Date.now(),
+                name,
+                group,
+                logo: '',
+                favorite: true,
+                url
+            };
+
+            channels.unshift(newChannel);
+            saveChannelsToStorage();
+            renderCategoryPills();
+            renderChannelList();
+
+            document.getElementById('form-channel-name').value = '';
+            document.getElementById('form-channel-url').value = '';
+
+            loadStream(newChannel.url, newChannel.name, newChannel.group, newChannel.id);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            showToast(`เพิ่มและเล่นช่อง "${name}" เรียบร้อยแล้ว`, 'success');
+        }
+
+        function resetToDefaultChannels() {
+            channels = JSON.parse(JSON.stringify(DEFAULT_CHANNELS));
+            saveChannelsToStorage();
+            activeCategory = 'ALL';
+            renderCategoryPills();
+            renderChannelList();
+            loadStream(channels[0].url, channels[0].name, channels[0].group, channels[0].id);
+            showToast('รีเซ็ตรายการช่องกลับเป็นค่าเริ่มต้นแล้ว', 'info');
+        }
+
+        /**
+         * =====================================================================
+         * 6. Utilities & Toast Notifications
+         * =====================================================================
+         */
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            const styles = {
+                success: 'border-emerald-500 text-emerald-400',
+                warning: 'border-amber-500 text-amber-400',
+                info: 'border-sky-500 text-sky-400'
+            };
+            const icons = {
+                success: 'fa-circle-check',
+                warning: 'fa-circle-exclamation',
+                info: 'fa-circle-info'
+            };
+
+            toast.className = `pointer-events-auto bg-slatex-900/95 backdrop-blur-md border ${styles[type] || styles.info} px-4 py-3 rounded-xl shadow-2xl text-xs sm:text-sm font-medium flex items-center gap-2.5 transition-all duration-300 translate-y-2 opacity-0`;
+            toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i><span class="text-white">${escapeHtml(message)}</span>`;
+
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.remove('translate-y-2', 'opacity-0'));
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3200);
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str || '';
+            return div.innerHTML;
+        }
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            const video = document.getElementById('hls-video');
+            video.muted = false;
+            video.volume = 1.0;
+
+            loadChannelsFromStorage();
+            renderCategoryPills();
+            renderChannelList();
+            startBufferTelemetry();
+
+            if (channels.length > 0) {
+                loadStream(channels[0].url, channels[0].name, channels[0].group, channels[0].id);
+            }
+        });
+    </script>
+</body>
+</html>
