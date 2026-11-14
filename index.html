@@ -37,7 +37,7 @@
 
         <!-- Video Control Toolbar (Fullscreen Button) -->
         <div class="flex justify-between items-center bg-zinc-900 px-4 py-2 mt-1 rounded-md border border-zinc-800 text-xs">
-            <span id="current-channel-name" class="text-zinc-400 truncate">ยังไม่ได้เลือกช่อง</span>
+            <span id="current-channel-name" class="text-zinc-400 truncate"></span>
             <button onclick="toggleFullscreen()" class="bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-1.5 rounded transition flex items-center gap-1.5 cursor-pointer">
                 <i class="fa-solid fa-expand"></i> เต็มจอ
             </button>
@@ -45,63 +45,95 @@
 
         <!-- Section Title -->
         <div class="mt-6 mb-3 border-b border-zinc-800 pb-2">
-            <h2 class="text-base font-bold text-zinc-200">ช่อง True Sport & กีฬา</h2>
+            <h2 class="text-base font-bold text-zinc-200">ช่องดิจิตอล</h2>
         </div>
 
         <!-- Channels Grid -->
         <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
             
-            <!-- Channel Items -->
-            <button onclick="playStream('https://edge-2.m-fixer.net:8092/stream/ais/3hd/master.m3u8', 'CH3')" class="bg-white hover:bg-zinc-200 rounded p-2 flex flex-col items-center justify-center aspect-video shadow transition cursor-pointer">
-                <div class="text-center font-bold text-black text-sm">CH3<span class="block text-lg">1</span></div>
+            <!-- Channel Items with Logo and Name at Bottom -->
+            <button onclick="playStream('https://edge-2.m-fixer.net:8092/stream/ais/3hd/master.m3u8', 'CH3')" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded p-2 flex flex-col items-center justify-between aspect-video shadow transition cursor-pointer">
+                <div class="flex-grow flex items-center justify-center">
+                    <span class="text-emerald-400 font-extrabold text-lg"><i class="fa-solid fa-tv"></i></span>
+                </div>
+                <span class="text-[11px] text-zinc-300 font-semibold mt-1">CH3</span>
             </button>
 
-            <button onclick="playStream('https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8', 'AIS Play 2')" class="bg-white hover:bg-zinc-200 rounded p-2 flex flex-col items-center justify-center aspect-video shadow transition cursor-pointer">
-                <div class="text-center font-bold text-black text-sm">AIS <span class="block text-lg">2</span></div>
+            <button onclick="playStream('https://edge-2.m-fixer.net:8092/stream/ais/3hd/master.m3u8', 'AIS Play 2')" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded p-2 flex flex-col items-center justify-between aspect-video shadow transition cursor-pointer">
+                <div class="flex-grow flex items-center justify-center">
+                    <span class="text-emerald-400 font-extrabold text-lg"><i class="fa-solid fa-tv"></i></span>
+                </div>
+                <span class="text-[11px] text-zinc-300 font-semibold mt-1">AIS 2</span>
             </button>
 
-            <button onclick="playStream('https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8', 'AIS Play 3')" class="bg-white hover:bg-zinc-200 rounded p-2 flex flex-col items-center justify-center aspect-video shadow transition cursor-pointer">
-                <div class="text-center font-bold text-black text-sm">AIS <span class="block text-lg">3</span></div>
+            <button onclick="playStream('https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8', 'AIS Play 3')" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded p-2 flex flex-col items-center justify-between aspect-video shadow transition cursor-pointer">
+                <div class="flex-grow flex items-center justify-center">
+                    <span class="text-emerald-400 font-extrabold text-lg"><i class="fa-solid fa-tv"></i></span>
+                </div>
+                <span class="text-[11px] text-zinc-300 font-semibold mt-1">AIS 3</span>
             </button>
 
-            <button onclick="playStream('https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8', 'AIS Play 4')" class="bg-white hover:bg-zinc-200 rounded p-2 flex flex-col items-center justify-center aspect-video shadow transition cursor-pointer">
-                <div class="text-center font-bold text-black text-sm">AIS <span class="block text-lg">4</span></div>
+            <button onclick="playStream('https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8', 'AIS Play 4')" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded p-2 flex flex-col items-center justify-between aspect-video shadow transition cursor-pointer">
+                <div class="flex-grow flex items-center justify-center">
+                    <span class="text-emerald-400 font-extrabold text-lg"><i class="fa-solid fa-tv"></i></span>
+                </div>
+                <span class="text-[11px] text-zinc-300 font-semibold mt-1">AIS 4</span>
             </button>
 
-            <button onclick="playStream('https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8', 'beIN Sports 1')" class="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded p-2 flex flex-col items-center justify-center aspect-video shadow transition text-white cursor-pointer">
-                <span class="text-xs font-semibold">beIN 1</span>
+            <button onclick="playStream('https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8', 'beIN Sports 1')" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded p-2 flex flex-col items-center justify-between aspect-video shadow transition cursor-pointer">
+                <div class="flex-grow flex items-center justify-center">
+                    <span class="text-purple-400 font-bold text-xs bg-purple-950 px-2 py-0.5 rounded border border-purple-800">beIN</span>
+                </div>
+                <span class="text-[11px] text-zinc-300 font-semibold mt-1">beIN Sports 1</span>
             </button>
 
-            <button onclick="playStream('https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8', 'beIN Sports 2')" class="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded p-2 flex flex-col items-center justify-center aspect-video shadow transition text-white cursor-pointer">
-                <span class="text-xs font-semibold">beIN 2</span>
+            <button onclick="playStream('https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8', 'beIN Sports 2')" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded p-2 flex flex-col items-center justify-between aspect-video shadow transition cursor-pointer">
+                <div class="flex-grow flex items-center justify-center">
+                    <span class="text-purple-400 font-bold text-xs bg-purple-950 px-2 py-0.5 rounded border border-purple-800">beIN</span>
+                </div>
+                <span class="text-[11px] text-zinc-300 font-semibold mt-1">beIN Sports 2</span>
             </button>
 
-            <button onclick="playStream('https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8', 'beIN Sports 3')" class="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded p-2 flex flex-col items-center justify-center aspect-video shadow transition text-white cursor-pointer">
-                <span class="text-xs font-semibold">beIN 3</span>
+            <button onclick="playStream('https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8', 'beIN Sports 3')" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded p-2 flex flex-col items-center justify-between aspect-video shadow transition cursor-pointer">
+                <div class="flex-grow flex items-center justify-center">
+                    <span class="text-purple-400 font-bold text-xs bg-purple-950 px-2 py-0.5 rounded border border-purple-800">beIN</span>
+                </div>
+                <span class="text-[11px] text-zinc-300 font-semibold mt-1">beIN Sports 3</span>
             </button>
 
-            <button onclick="playStream('https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8', 'beIN Sports 4')" class="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded p-2 flex flex-col items-center justify-center aspect-video shadow transition text-white cursor-pointer">
-                <span class="text-xs font-semibold">beIN 4</span>
+            <button onclick="playStream('https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8', 'beIN Sports 4')" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded p-2 flex flex-col items-center justify-between aspect-video shadow transition cursor-pointer">
+                <div class="flex-grow flex items-center justify-center">
+                    <span class="text-purple-400 font-bold text-xs bg-purple-950 px-2 py-0.5 rounded border border-purple-800">beIN</span>
+                </div>
+                <span class="text-[11px] text-zinc-300 font-semibold mt-1">beIN Sports 4</span>
             </button>
 
-            <button onclick="playStream('https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8', 'True Sport MAX 1')" class="bg-black border border-zinc-800 hover:border-zinc-600 rounded p-2 flex flex-col items-center justify-center aspect-video shadow transition text-white cursor-pointer">
-                <span class="text-[10px] text-red-500 font-bold">TRUE</span>
-                <span class="text-xs font-bold">MAX 1</span>
+            <button onclick="playStream('https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8', 'True Sport MAX 1')" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded p-2 flex flex-col items-center justify-between aspect-video shadow transition cursor-pointer">
+                <div class="flex-grow flex items-center justify-center">
+                    <span class="text-red-500 font-black text-xs tracking-wider">TRUE</span>
+                </div>
+                <span class="text-[11px] text-zinc-300 font-semibold mt-1">MAX 1</span>
             </button>
 
-            <button onclick="playStream('https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8', 'True Sport MAX 2')" class="bg-black border border-zinc-800 hover:border-zinc-600 rounded p-2 flex flex-col items-center justify-center aspect-video shadow transition text-white cursor-pointer">
-                <span class="text-[10px] text-red-500 font-bold">TRUE</span>
-                <span class="text-xs font-bold">MAX 2</span>
+            <button onclick="playStream('https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8', 'True Sport MAX 2')" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded p-2 flex flex-col items-center justify-between aspect-video shadow transition cursor-pointer">
+                <div class="flex-grow flex items-center justify-center">
+                    <span class="text-red-500 font-black text-xs tracking-wider">TRUE</span>
+                </div>
+                <span class="text-[11px] text-zinc-300 font-semibold mt-1">MAX 2</span>
             </button>
 
-            <button onclick="playStream('https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8', 'True Sport MAX 3')" class="bg-black border border-zinc-800 hover:border-zinc-600 rounded p-2 flex flex-col items-center justify-center aspect-video shadow transition text-white cursor-pointer">
-                <span class="text-[10px] text-red-500 font-bold">TRUE</span>
-                <span class="text-xs font-bold">MAX 3</span>
+            <button onclick="playStream('https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8', 'True Sport MAX 3')" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded p-2 flex flex-col items-center justify-between aspect-video shadow transition cursor-pointer">
+                <div class="flex-grow flex items-center justify-center">
+                    <span class="text-red-500 font-black text-xs tracking-wider">TRUE</span>
+                </div>
+                <span class="text-[11px] text-zinc-300 font-semibold mt-1">MAX 3</span>
             </button>
 
-            <button onclick="playStream('https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8', 'SIAM Sport 1')" class="bg-zinc-900 border border-zinc-800 hover:border-zinc-600 rounded p-2 flex flex-col items-center justify-center aspect-video shadow transition text-white cursor-pointer">
-                <span class="text-xs font-bold">SIAM-1</span>
-                <span class="text-[9px] text-red-500">LIVE</span>
+            <button onclick="playStream('https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8', 'SIAM Sport 1')" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded p-2 flex flex-col items-center justify-between aspect-video shadow transition cursor-pointer">
+                <div class="flex-grow flex items-center justify-center">
+                    <span class="text-blue-400 font-bold text-xs"><i class="fa-solid fa-futbol"></i></span>
+                </div>
+                <span class="text-[11px] text-zinc-300 font-semibold mt-1">SIAM-1</span>
             </button>
 
         </div>
