@@ -95,7 +95,7 @@
 
             <!-- Category Header -->
             <div class="flex items-center justify-between mb-3">
-                <h1 id="currentCategoryTitle" class="text-base sm:text-lg font-bold text-orange-500">ช่องBEIN</h1>
+                <h1 id="currentCategoryTitle" class="text-base sm:text-lg font-bold text-orange-500">ช่องทีวีดิจิตอล</h1>
                 <span id="channelCount" class="text-xs text-zinc-400">0 ช่อง</span>
             </div>
 
@@ -174,7 +174,7 @@
 
         // โหลดข้อมูลจาก LocalStorage (ถ้าเคยบันทึกไว้) หรือใช้ค่าเริ่มต้น
         let channelsData = JSON.parse(localStorage.getItem('dino_football_channels')) || defaultChannelsData;
-        let currentCategory = 'BEIN'; // เริ่มต้นที่หมวด ช่องBEIN
+        let currentCategory = 'digital'; // เริ่มต้นที่หมวด ช่องทีวีดิจิตอล
         let activeChannelId = null;
         let hls = null;
 
