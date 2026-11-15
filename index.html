@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DINO TV - ดูบอลสดออนไลน์ (Multi-Player)</title>
+    <title>DINO TV - ดูบอลสดออนไลน์ (External Player Support)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
@@ -30,7 +30,7 @@
                 <span class="text-sm tracking-tighter">DINO</span>
                 <span class="text-[9px] text-orange-600 tracking-widest font-bold">TV LIVE</span>
             </div>
-            <span class="hidden sm:inline text-xs text-zinc-400">ระบบดูบอลสด (เลือกตัวเล่นได้)</span>
+            <span class="hidden sm:inline text-xs text-zinc-400">ระบบดูบอลสด (รองรับ VLC & Wiseplay)</span>
         </div>
 
         <div class="flex items-center gap-2 sm:gap-4">
@@ -67,16 +67,16 @@
                         <h2 id="activeChannelTitle" class="font-semibold text-sm sm:text-base text-white truncate">กำลังรับชม: -</h2>
                     </div>
                     
-                    <!-- Player Switcher Buttons -->
-                    <div class="flex items-center gap-1.5">
-                        <span class="text-[10px] text-zinc-400 mr-1 hidden sm:inline">ตัวเล่น:</span>
-                        <button onclick="switchPlayerEngine('hls')" id="btnEngineHls" class="text-xs px-2.5 py-1 rounded bg-orange-600 text-white font-medium transition">
-                            HLS / Smart
+                    <!-- External Players & Control Buttons -->
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="text-[10px] text-zinc-400 mr-1 hidden sm:inline">เปิดในแอป:</span>
+                        <button onclick="openInVLC()" class="text-xs px-2.5 py-1 rounded bg-orange-700 hover:bg-orange-600 text-white font-medium transition flex items-center gap-1">
+                            ▶ VLC
                         </button>
-                        <button onclick="switchPlayerEngine('native')" id="btnEngineNative" class="text-xs px-2.5 py-1 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition">
-                            Native (สำรอง)
+                        <button onclick="openInWiseplay()" class="text-xs px-2.5 py-1 rounded bg-purple-700 hover:bg-purple-600 text-white font-medium transition flex items-center gap-1">
+                            ▶ Wiseplay
                         </button>
-                        <button onclick="toggleFullScreen()" class="text-xs bg-zinc-800 hover:bg-orange-600 text-white px-2.5 py-1 rounded transition ml-2">
+                        <button onclick="toggleFullScreen()" class="text-xs bg-zinc-800 hover:bg-orange-600 text-white px-2.5 py-1 rounded transition ml-1">
                             ⛶ ขยาย
                         </button>
                         <button onclick="closePlayer()" class="text-xs bg-zinc-800 hover:bg-red-600 text-white px-2.5 py-1 rounded transition">
@@ -90,7 +90,7 @@
                     <video id="videoPlayer" class="w-full h-full object-contain" controls playsinline webkit-playsinline x5-playsinline></video>
                     <div id="playerOverlay" class="absolute inset-0 flex flex-col items-center justify-center bg-black/85 text-center p-4">
                         <p class="text-orange-500 font-semibold text-base mb-1">ยังไม่ได้ใส่ลิงก์สตรีมสำหรับช่องนี้</p>
-                        <p class="text-zinc-400 text-xs">วางลิงก์สตรีม .m3u8 หรือไฟล์วิดีโอในช่องด้านล่าง</p>
+                        <p class="text-zinc-400 text-xs">วางลิงก์สตรีม .m3u8 หรือเปิดข้ามไปแอปภายนอกได้ทันที</p>
                     </div>
                 </div>
 
@@ -127,7 +127,7 @@
 
     <script>
         const categories = [
-            { id: 'digital', name: 'ช่องทีวีดิจิตอล' },
+            { id: 'digital', name: 'ช่องทีวีดิจิตอล' }
             { id: 'bein', name: 'ช่องBEIN' },
             { id: 'truesport', name: 'ช่องทรูสปอร์ต' },
             { id: 'thaiball', name: 'ช่องบอลไทย' },
@@ -168,16 +168,15 @@
             { id: 'sw1', name: 'Sky Sports Main Event', category: 'sportsworld', badge: 'UK', color: 'from-indigo-900 to-zinc-900', url: '', referer: '' },
             { id: 'sw2', name: 'TNT Sports 1', category: 'sportsworld', badge: 'UK', color: 'from-pink-900 to-zinc-900', url: '', referer: '' },
             
-            { id: 'ch3', name: 'CH3 HD', category: 'digital', badge: '33', color: 'from-sky-800 to-zinc-950', url: 'https://edge-2.m-fixer.net:8092/stream/ais/3hd/master.m3u8',},
-            { id: 'ch7', name: 'CH7 HD', category: 'digital', badge: '35', color: 'from-sky-800 to-zinc-950', url: 'https://live-cdn.ch7.com/out/v1/eafeb02c55b64a15b278b1e66c7fc776/playlist_9.m3u8', referer: '' },
-            { id: 'thairath', name: 'Thairath TV', category: 'digital', badge: '32', color: 'from-sky-800 to-zinc-950', url: 'https://thaipbs-live.cdn.byteark.com/live/playlist.m3u8', referer: '' },
-            { id: 'pptv', name: 'PPTV HD 36', category: 'digital', badge: '36', color: 'from-sky-800 to-zinc-950', url: 'https://s.okwin321.ai/rs/1698/index.m3u8', referer: '' }
+            { id: 'ch3', name: 'CH3 HD', category: 'digital', badge: '33', color: 'from-zinc-800 to-zinc-950', url: 'https://edge-2.m-fixer.net:8092/stream/ais/3hd/master.m3u8', referer: '' },
+            { id: 'ch7', name: 'CH7 HD', category: 'digital', badge: '35', color: 'from-zinc-800 to-zinc-950', url: 'https://live-cdn.ch7.com/out/v1/eafeb02c55b64a15b278b1e66c7fc776/playlist_9.m3u8', referer: '' },
+            { id: 'thairath', name: 'Thairath TV', category: 'digital', badge: '32', color: 'from-zinc-800 to-zinc-950', url: 'https://thaipbs-live.cdn.byteark.com/live/playlist.m3u8', referer: '' },
+            { id: 'pptv', name: 'PPTV HD 36', category: 'digital', badge: '36', color: 'from-zinc-800 to-zinc-950', url: 'https://s.okwin321.ai/rs/1698/index.m3u8', referer: '' }
         ];
 
-        let channelsData = JSON.parse(localStorage.getItem('dino_football_channels_v3')) || defaultChannelsData;
+        let channelsData = JSON.parse(localStorage.getItem('dino_football_channels_v4')) || defaultChannelsData;
         let currentCategory = 'digital';
         let activeChannelId = null;
-        let activeEngine = 'hls'; // 'hls' หรือ 'native'
         let hlsInstance = null;
         let dashInstance = null;
 
@@ -274,24 +273,6 @@
             video.load();
         }
 
-        // ฟังก์ชันเลือกสลับตัวเล่นระหว่าง HLS.js และ Native
-        function switchPlayerEngine(engine) {
-            activeEngine = engine;
-            const btnHls = document.getElementById('btnEngineHls');
-            const btnNative = document.getElementById('btnEngineNative');
-
-            if (engine === 'hls') {
-                btnHls.className = "text-xs px-2.5 py-1 rounded bg-orange-600 text-white font-medium transition";
-                btnNative.className = "text-xs px-2.5 py-1 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition";
-            } else {
-                btnNative.className = "text-xs px-2.5 py-1 rounded bg-orange-600 text-white font-medium transition";
-                btnHls.className = "text-xs px-2.5 py-1 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition";
-            }
-
-            const currentUrl = document.getElementById('streamUrlInput').value.trim();
-            playStream(currentUrl);
-        }
-
         function playStream(url) {
             const video = document.getElementById('videoPlayer');
             const overlay = document.getElementById('playerOverlay');
@@ -306,25 +287,42 @@
             overlay.classList.add('hidden');
             const targetUrl = url.trim();
 
-            if (activeEngine === 'native') {
-                // บังคับใช้ตัวเล่น Native สำรอง
+            if (targetUrl.endsWith('.mpd')) {
+                dashInstance = dashjs.MediaPlayer().create();
+                dashInstance.initialize(video, targetUrl, true);
+            } else if (Hls.isSupported() && !targetUrl.match(/\.(mp4|webm|ogg|mov)$/i)) {
+                hlsInstance = new Hls();
+                hlsInstance.loadSource(targetUrl);
+                hlsInstance.attachMedia(video);
+                hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
+            } else {
                 video.src = targetUrl;
                 video.play().catch(() => {});
-            } else {
-                // ใช้ตัวเล่นหลัก (HLS.js / Dash.js / มาตรฐาน)
-                if (targetUrl.endsWith('.mpd')) {
-                    dashInstance = dashjs.MediaPlayer().create();
-                    dashInstance.initialize(video, targetUrl, true);
-                } else if (Hls.isSupported() && !targetUrl.match(/\.(mp4|webm|ogg|mov)$/i)) {
-                    hlsInstance = new Hls();
-                    hlsInstance.loadSource(targetUrl);
-                    hlsInstance.attachMedia(video);
-                    hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
-                } else {
-                    video.src = targetUrl;
-                    video.play().catch(() => {});
-                }
             }
+        }
+
+        // ฟังก์ชันสั่งเปิดลิงก์ในแอป VLC (ผ่าน Intent / Protocol Handler)
+        function openInVLC() {
+            const url = document.getElementById('streamUrlInput').value.trim();
+            if (!url) {
+                alert('กรุณาใส่ลิงก์สตรีมก่อน');
+                return;
+            }
+            // VLC Intent สำหรับ Android และ Custom URL Scheme สำหรับ iOS/PC
+            const vlcUrl = `vlc://${url}`;
+            window.location.href = vlcUrl;
+        }
+
+        // ฟังก์ชันสั่งเปิดลิงก์ในแอป Wiseplay
+        function openInWiseplay() {
+            const url = document.getElementById('streamUrlInput').value.trim();
+            if (!url) {
+                alert('กรุณาใส่ลิงก์สตรีมก่อน');
+                return;
+            }
+            // Wiseplay Protocol Scheme
+            const wiseplayUrl = `wiseplay://v?url=${encodeURIComponent(url)}`;
+            window.location.href = wiseplayUrl;
         }
 
         function saveAndPlayStream() {
@@ -336,7 +334,7 @@
             if (index !== -1) {
                 channelsData[index].url = newUrl;
                 channelsData[index].referer = newReferer;
-                localStorage.setItem('dino_football_channels_v3', JSON.stringify(channelsData));
+                localStorage.setItem('dino_football_channels_v4', JSON.stringify(channelsData));
                 renderChannels(document.getElementById('searchInput').value);
                 playStream(newUrl);
             }
@@ -358,7 +356,7 @@
 
         function resetChannels() {
             if (confirm('ต้องการรีเซ็ตลิงก์ทั้งหมดกลับเป็นค่าเริ่มต้นใช่หรือไม่?')) {
-                localStorage.removeItem('dino_football_channels_v3');
+                localStorage.removeItem('dino_football_channels_v4');
                 channelsData = JSON.parse(JSON.stringify(defaultChannelsData));
                 closePlayer();
                 renderChannels();
