@@ -168,11 +168,15 @@
             { id: 'sw1', name: 'Sky Sports Main Event', category: 'sportsworld', badge: 'UK', color: 'from-indigo-900 to-zinc-900', url: '', referer: '' },
             { id: 'sw2', name: 'TNT Sports 1', category: 'sportsworld', badge: 'UK', color: 'from-pink-900 to-zinc-900', url: '', referer: '' },
             
-            { id: 'ch3', name: 'CH3 HD', category: 'digital', badge: '33', color: 'from-sky-800 to-zinc-950', url: 'https://edge-2.m-fixer.net:8092/stream/ais/3hd/master.m3u8' },
-            { id: 'ch5', name: 'CH5 HD', category: 'digital', badge: '35', color: 'from-zinc-800 to-zinc-950', url: 'https://edge-2.m-fixer.net:8092/stream/ais/ch5/master.m3u8', referer: '' },
-            { id: 'ch7', name: 'CH7 HD', category: 'digital', badge: '35', color: 'from-zinc-800 to-zinc-950', url: 'https://live-cdn.ch7.com/out/v1/eafeb02c55b64a15b278b1e66c7fc776/playlist_9.m3u8', referer: '' },
-            { id: 'thairath', name: 'Thairath TV', category: 'digital', badge: '32', color: 'from-zinc-800 to-zinc-950', url: '', referer: '' },
-            { id: 'pptv', name: 'PPTV HD 36', category: 'digital', badge: '36', color: 'from-zinc-800 to-zinc-950', url: 'https://idooxtream.streaming-fast.com/xtream/WISEPLAY/live/atmflix/index.php?c=amarintv', referer: 'https://idooxtream.streaming-fast.com',userAgent:'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/601.3.9 (KHTML, like Gecko) Version/9.0.2 Safari/601.3.9' }
+            { id: 'ch3', name: 'CH3 HD', category: 'digital', badge: 'hd', color: 'from-sky-800 to-zinc-950', url: 'https://edge-2.m-fixer.net:8092/stream/ais/3hd/master.m3u8' },
+            { id: 'ch5', name: 'CH5 HD', category: 'digital', badge: 'hd', color: 'from-zinc-800 to-zinc-950', url: 'https://edge-2.m-fixer.net:8092/stream/ais/ch5/master.m3u8' },
+            { id: 'ch7', name: 'CH7 HD', category: 'digital', badge: 'hd', color: 'from-zinc-800 to-zinc-950', url: 'https://edge-2.m-fixer.net:8092/stream/ais/ch7hd/master.m3u8' },
+            { id: 'mcot', name: 'MCOT HD', category: 'digital', badge: 'hd', color: 'from-zinc-800 to-zinc-950', url: 'https://edge-2.m-fixer.net:8092/stream/true/mcothd/master.m3u8' },
+            { id: 'nbt', name: 'NBT', category: 'digital', badge: 'hd', color: 'from-zinc-800 to-zinc-950', url: 'https://edge-2.m-fixer.net:8092/stream/true/nbthd/master.m3u8' },
+            { id: 'ch8', name: 'CH8', category: 'digital', badge: 'hd', color: 'from-zinc-800 to-zinc-950', url: 'https://edge-2.m-fixer.net:8092/stream/ais/ch8/master.m3u8' },
+            { id: 'workpoint', name: 'WORKPOINT23', category: 'digital', badge: 'hd', color: 'from-zinc-800 to-zinc-950', url: 'https://edge-2.m-fixer.net:8092/stream/ais/workpoint/master.m3u8' },
+            { id: 'thairath', name: 'Thairath TV', category: 'digital', badge: 'hd', color: 'from-zinc-800 to-zinc-950', url: '', referer: '' },
+            { id: 'thaipbs', name: 'ThaiPBS', category: 'digital', badge: 'hd', color: 'from-zinc-800 to-zinc-950', url: 'https://idooxtream.streaming-fast.com/xtream/WISEPLAY/live/atmflix/index.php?c=amarintv', referer: 'https://idooxtream.streaming-fast.com',userAgent:'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/601.3.9 (KHTML, like Gecko) Version/9.0.2 Safari/601.3.9' }
         ];
 
         let channelsData = JSON.parse(localStorage.getItem('dino_football_channels_v3')) || defaultChannelsData;
