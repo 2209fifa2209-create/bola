@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DINO TV - ดูบอลสดออนไลน์ (รองรับทุกไฟล์)</title>
+    <title>DINO TV - ดูบอลสดออนไลน์ (Multi-Player)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
@@ -30,7 +30,7 @@
                 <span class="text-sm tracking-tighter">DINO</span>
                 <span class="text-[9px] text-orange-600 tracking-widest font-bold">TV LIVE</span>
             </div>
-            <span class="hidden sm:inline text-xs text-zinc-400">รองรับ M3U8, MPD, MP4, TS & ทุกสตรีม</span>
+            <span class="hidden sm:inline text-xs text-zinc-400">ระบบดูบอลสด (เลือกตัวเล่นได้)</span>
         </div>
 
         <div class="flex items-center gap-2 sm:gap-4">
@@ -41,7 +41,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
             </div>
-            <button onclick="resetChannels()" title="รีเซ็ตลิงก์เริ่มต้นจากโค้ด" class="p-2 text-zinc-400 hover:text-orange-500 transition">
+            <button onclick="resetChannels()" title="รีเซ็ตค่าเริ่มต้น" class="p-2 text-zinc-400 hover:text-orange-500 transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                 </svg>
@@ -59,20 +59,28 @@
         <!-- Right Main Area -->
         <main class="flex-1 flex flex-col overflow-y-auto bg-[#18181b] p-3 sm:p-5">
             
-            <!-- Video Player & Multi-Format Editor Section -->
+            <!-- Video Player Section -->
             <div id="playerSection" class="hidden mb-5 bg-[#121214] border border-zinc-800 rounded-xl overflow-hidden shadow-2xl">
-                <div class="flex items-center justify-between bg-zinc-900 px-4 py-2 border-b border-zinc-800">
+                <div class="flex items-center justify-between bg-zinc-900 px-4 py-2 border-b border-zinc-800 flex-wrap gap-2">
                     <div class="flex items-center gap-2 overflow-hidden">
                         <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shrink-0"></span>
                         <h2 id="activeChannelTitle" class="font-semibold text-sm sm:text-base text-white truncate">กำลังรับชม: -</h2>
-                        <span id="streamTypeBadge" class="text-[10px] bg-orange-600/20 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded shrink-0">AUTO</span>
                     </div>
-                    <div class="flex items-center gap-2 shrink-0">
-                        <button onclick="toggleFullScreen()" class="text-xs bg-zinc-800 hover:bg-orange-600 text-white px-2.5 py-1 rounded transition">
-                            ⛶ ขยายเต็มจอ
+                    
+                    <!-- Player Switcher Buttons -->
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[10px] text-zinc-400 mr-1 hidden sm:inline">ตัวเล่น:</span>
+                        <button onclick="switchPlayerEngine('hls')" id="btnEngineHls" class="text-xs px-2.5 py-1 rounded bg-orange-600 text-white font-medium transition">
+                            HLS / Smart
+                        </button>
+                        <button onclick="switchPlayerEngine('native')" id="btnEngineNative" class="text-xs px-2.5 py-1 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition">
+                            Native (สำรอง)
+                        </button>
+                        <button onclick="toggleFullScreen()" class="text-xs bg-zinc-800 hover:bg-orange-600 text-white px-2.5 py-1 rounded transition ml-2">
+                            ⛶ ขยาย
                         </button>
                         <button onclick="closePlayer()" class="text-xs bg-zinc-800 hover:bg-red-600 text-white px-2.5 py-1 rounded transition">
-                            ✕ ปิดจอ
+                            ✕ ปิด
                         </button>
                     </div>
                 </div>
@@ -82,20 +90,20 @@
                     <video id="videoPlayer" class="w-full h-full object-contain" controls playsinline webkit-playsinline x5-playsinline></video>
                     <div id="playerOverlay" class="absolute inset-0 flex flex-col items-center justify-center bg-black/85 text-center p-4">
                         <p class="text-orange-500 font-semibold text-base mb-1">ยังไม่ได้ใส่ลิงก์สตรีมสำหรับช่องนี้</p>
-                        <p class="text-zinc-400 text-xs">รองรับ .m3u8, .mpd, .mp4, .webm หรือลิงก์สตรีมสด</p>
+                        <p class="text-zinc-400 text-xs">วางลิงก์สตรีม .m3u8 หรือไฟล์วิดีโอในช่องด้านล่าง</p>
                     </div>
                 </div>
 
-                <!-- Direct Stream & Referer Link Editor -->
+                <!-- Stream Link & Referer Editor -->
                 <div class="p-3 bg-zinc-900/90 border-t border-zinc-800 flex flex-col gap-2">
                     <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
                         <span class="text-xs text-orange-400 font-medium w-20 shrink-0">ลิงก์สตรีม:</span>
-                        <input type="text" id="streamUrlInput" placeholder="วางลิงก์ .m3u8 / .mpd / .mp4 / .ts ที่นี่" 
+                        <input type="text" id="streamUrlInput" placeholder="วางลิงก์ https://.../index.m3u8 ที่นี่" 
                             class="flex-1 bg-zinc-950 border border-zinc-700 rounded px-3 py-1.5 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500">
                     </div>
                     <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
                         <span class="text-xs text-zinc-400 font-medium w-20 shrink-0">Referer:</span>
-                        <input type="text" id="refererInput" placeholder="(ไม่บังคับ) เช่น https://domain-ต้นทาง.com/" 
+                        <input type="text" id="refererInput" placeholder="(ถ้ามี) https://domain-ต้นทาง.com/" 
                             class="flex-1 bg-zinc-950 border border-zinc-700 rounded px-3 py-1.5 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500">
                         <button onclick="saveAndPlayStream()" class="bg-orange-600 hover:bg-orange-500 text-white font-medium text-xs sm:text-sm px-5 py-1.5 rounded transition shrink-0">
                             ▶ บันทึกและเล่นทันที
@@ -118,16 +126,6 @@
     </div>
 
     <script>
-        // ==========================================
-        // 0. ตั้งค่า Proxy URL (กรณีต้องการใช้เล่นลิงก์ที่ติด Referer บนเบราว์เซอร์)
-        // ตัวอย่าง: 'https://your-worker.workers.dev/?url='
-        // หากปล่อยว่าง '' ระบบจะเล่นลิงก์ตรง
-        // ==========================================
-        const PROXY_BASE_URL = '';
-
-        // ==========================================
-        // 1. หมวดหมู่ทั้งหมด
-        // ==========================================
         const categories = [
             { id: 'digital', name: 'ช่องทีวีดิจิตอล' },
             { id: 'bein', name: 'ช่องBEIN' },
@@ -140,56 +138,39 @@
             
         ];
 
-        // ==========================================
-        // 2. ฐานข้อมูลช่องรายการ (ใส่ url และ referer ได้ทุกช่อง)
-        // ==========================================
         const defaultChannelsData = [
-            // หมวด ช่องBEIN
             { id: 'bein1', name: 'beIN SPORTS 1', category: 'bein', badge: 'HD', color: 'from-purple-900 to-zinc-900', url: '', referer: '' },
             { id: 'bein2', name: 'beIN SPORTS 2', category: 'bein', badge: 'HD', color: 'from-purple-900 to-zinc-900', url: '', referer: '' },
             { id: 'bein3', name: 'beIN SPORTS 3', category: 'bein', badge: 'HD', color: 'from-purple-900 to-zinc-900', url: '', referer: '' },
             { id: 'bein4', name: 'beIN SPORTS 4', category: 'bein', badge: 'HD', color: 'from-purple-900 to-zinc-900', url: '', referer: '' },
             { id: 'bein5', name: 'beIN SPORTS 5', category: 'bein', badge: 'HD', color: 'from-purple-900 to-zinc-900', url: '', referer: '' },
-
-            // หมวด ช่องทรูสปอร์ต
             { id: 'ts1', name: 'True Premier Football 1', category: 'truesport', badge: 'FHD', color: 'from-red-900 to-zinc-900', url: '', referer: '' },
             { id: 'ts2', name: 'True Premier Football 2', category: 'truesport', badge: 'FHD', color: 'from-red-900 to-zinc-900', url: '', referer: '' },
             { id: 'ts3', name: 'True Premier Football 3', category: 'truesport', badge: 'HD', color: 'from-red-900 to-zinc-900', url: '', referer: '' },
             { id: 'ts4', name: 'True Sports 2', category: 'truesport', badge: 'HD', color: 'from-red-800 to-zinc-900', url: '', referer: '' },
             { id: 'ts5', name: 'True Sports 3', category: 'truesport', badge: 'HD', color: 'from-red-800 to-zinc-900', url: '', referer: '' },
-
-            // หมวด ช่องบอลไทย
             { id: 'tb1', name: 'Ball Thai 1', category: 'thaiball', badge: 'LIVE', color: 'from-blue-900 to-zinc-900', url: '', referer: '' },
             { id: 'tb2', name: 'Ball Thai 2', category: 'thaiball', badge: 'LIVE', color: 'from-blue-900 to-zinc-900', url: '', referer: '' },
             { id: 'tb3', name: 'Ball Thai 3', category: 'thaiball', badge: 'LIVE', color: 'from-blue-900 to-zinc-900', url: '', referer: '' },
-
-            // หมวด ช่องMONOMAX
             { id: 'mono1', name: 'MONOMAX Sport 1', category: 'monomax', badge: 'HD', color: 'from-orange-900 to-zinc-900', url: '', referer: '' },
             { id: 'mono2', name: 'MONOMAX Sport 2', category: 'monomax', badge: 'HD', color: 'from-orange-900 to-zinc-900', url: '', referer: '' },
-
-            // หมวด กีฬา EVENTS
             { id: 'ev1', name: 'LIVE EVENT 01', category: 'events', badge: 'EVENT', color: 'from-emerald-900 to-zinc-900', url: '', referer: '' },
             { id: 'ev2', name: 'LIVE EVENT 02', category: 'events', badge: 'EVENT', color: 'from-emerald-900 to-zinc-900', url: '', referer: '' },
-
-            // หมวด SPORT
             { id: 'sp1', name: 'SPOTV 1', category: 'sport', badge: 'HD', color: 'from-sky-900 to-zinc-900', url: '', referer: '' },
             { id: 'sp2', name: 'SPOTV 2', category: 'sport', badge: 'HD', color: 'from-sky-900 to-zinc-900', url: '', referer: '' },
             { id: 'sp3', name: 'T Sports 7', category: 'sport', badge: 'HD', color: 'from-amber-900 to-zinc-900', url: '', referer: '' },
-
-            // หมวด SPORTS WORLD
             { id: 'sw1', name: 'Sky Sports Main Event', category: 'sportsworld', badge: 'UK', color: 'from-indigo-900 to-zinc-900', url: '', referer: '' },
             { id: 'sw2', name: 'TNT Sports 1', category: 'sportsworld', badge: 'UK', color: 'from-pink-900 to-zinc-900', url: '', referer: '' },
-
-            // หมวด ช่องทีวีดิจิตอล
-            { id: 'ch3', name: 'CH3 HD', category: 'digital', badge: '33', color: 'from-sky-800 to-zinc-950', url: 'https://edge-2.m-fixer.net:8092/stream/ais/3hd/master.m3u8'},
-            { id: 'ch7', name: 'CH7 HD', category: 'digital', badge: '35', color: 'from-sky-800 to-zinc-950', url: 'https://live-cdn.ch7.com/out/v1/eafeb02c55b64a15b278b1e66c7fc776/playlist_9.m3u8', referer: 'https://live-cdn.ch7.com' },
-            { id: 'thairath', name: 'Thairath TV', category: 'digital', badge: '32', color: 'from-sky-800 to-zinc-950', url: '', referer: '' },
-            { id: 'pptv', name: 'PPTV HD 36', category: 'digital', badge: '36', color: 'from-sky-800 to-zinc-950', url: 'https://s.okwin321.ai/rs/1698/index.m3u8'}
+            { id: 'ch3', name: 'CH3 HD', category: 'digital', badge: '33', color: 'from-zinc-800 to-zinc-950', url: '', referer: '' },
+            { id: 'ch7', name: 'CH7 HD', category: 'digital', badge: '35', color: 'from-zinc-800 to-zinc-950', url: 'https://live-cdn.ch7.com/out/v1/eafeb02c55b64a15b278b1e66c7fc776/playlist_9.m3u8', referer: '' },
+            { id: 'thairath', name: 'Thairath TV', category: 'digital', badge: '32', color: 'from-zinc-800 to-zinc-950', url: '', referer: '' },
+            { id: 'pptv', name: 'PPTV HD 36', category: 'digital', badge: '36', color: 'from-zinc-800 to-zinc-950', url: '', referer: '' }
         ];
 
-        let channelsData = JSON.parse(localStorage.getItem('dino_football_channels_v2')) || defaultChannelsData;
+        let channelsData = JSON.parse(localStorage.getItem('dino_football_channels_v3')) || defaultChannelsData;
         let currentCategory = 'digital';
         let activeChannelId = null;
+        let activeEngine = 'hls'; // 'hls' หรือ 'native'
         let hlsInstance = null;
         let dashInstance = null;
 
@@ -266,12 +247,11 @@
             document.getElementById('refererInput').value = channel.referer || '';
 
             renderChannels(document.getElementById('searchInput').value);
-            playUniversalStream(channel.url, channel.referer);
+            playStream(channel.url);
             
             document.querySelector('main').scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // ฟังก์ชันล้างตัวเล่นเก่าก่อนเปลี่ยนช่อง
         function destroyPlayers() {
             const video = document.getElementById('videoPlayer');
             if (hlsInstance) {
@@ -287,80 +267,54 @@
             video.load();
         }
 
-        // ฟังก์ชันเล่นสตรีมรองรับทุกไฟล์ (M3U8, MPD, MP4, WEBM, MOV, TS ฯลฯ)
-        function playUniversalStream(rawUrl, referer = '') {
+        // ฟังก์ชันเลือกสลับตัวเล่นระหว่าง HLS.js และ Native
+        function switchPlayerEngine(engine) {
+            activeEngine = engine;
+            const btnHls = document.getElementById('btnEngineHls');
+            const btnNative = document.getElementById('btnEngineNative');
+
+            if (engine === 'hls') {
+                btnHls.className = "text-xs px-2.5 py-1 rounded bg-orange-600 text-white font-medium transition";
+                btnNative.className = "text-xs px-2.5 py-1 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition";
+            } else {
+                btnNative.className = "text-xs px-2.5 py-1 rounded bg-orange-600 text-white font-medium transition";
+                btnHls.className = "text-xs px-2.5 py-1 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition";
+            }
+
+            const currentUrl = document.getElementById('streamUrlInput').value.trim();
+            playStream(currentUrl);
+        }
+
+        function playStream(url) {
             const video = document.getElementById('videoPlayer');
             const overlay = document.getElementById('playerOverlay');
-            const badge = document.getElementById('streamTypeBadge');
 
             destroyPlayers();
 
-            if (!rawUrl || rawUrl.trim() === '') {
+            if (!url || url.trim() === '') {
                 overlay.classList.remove('hidden');
-                badge.textContent = 'NO LINK';
                 return;
             }
 
             overlay.classList.add('hidden');
-            let finalUrl = rawUrl.trim();
+            const targetUrl = url.trim();
 
-            // กรณีรองรับรูปแบบลิงก์|Referer=... ในช่องเดียว
-            if (finalUrl.includes('|Referer=')) {
-                const parts = finalUrl.split('|Referer=');
-                finalUrl = parts[0].trim();
-                referer = parts[1].trim();
-            }
-
-            // หากตั้งค่า PROXY_BASE_URL ไว้และมีการใส่ referer ให้ส่งผ่าน Proxy
-            if (PROXY_BASE_URL && referer && referer.trim() !== '') {
-                finalUrl = `${PROXY_BASE_URL}${encodeURIComponent(finalUrl)}&referer=${encodeURIComponent(referer.trim())}`;
-            }
-
-            const lowerUrl = finalUrl.toLowerCase().split('?')[0];
-
-            // 1. ไฟล์ DASH (.mpd)
-            if (lowerUrl.endsWith('.mpd')) {
-                badge.textContent = 'DASH (MPD)';
-                dashInstance = dashjs.MediaPlayer().create();
-                dashInstance.initialize(video, finalUrl, true);
-            } 
-            // 2. ไฟล์วิดีโอมาตรฐาน (.mp4, .webm, .ogg, .mov, .m4v, .mkv)
-            else if (/\.(mp4|webm|ogg|mov|m4v|mkv)$/i.test(lowerUrl)) {
-                badge.textContent = 'VIDEO FILE';
-                video.src = finalUrl;
+            if (activeEngine === 'native') {
+                // บังคับใช้ตัวเล่น Native สำรอง
+                video.src = targetUrl;
                 video.play().catch(() => {});
-            } 
-            // 3. ไฟล์ HLS (.m3u8) หรือลิงก์สตรีมสดที่ไม่ระบุนามสกุล
-            else {
-                if (Hls.isSupported()) {
-                    badge.textContent = 'HLS STREAM';
-                    hlsInstance = new Hls({
-                        enableWorker: true,
-                        lowLatencyMode: true
-                    });
-                    hlsInstance.loadSource(finalUrl);
+            } else {
+                // ใช้ตัวเล่นหลัก (HLS.js / Dash.js / มาตรฐาน)
+                if (targetUrl.endsWith('.mpd')) {
+                    dashInstance = dashjs.MediaPlayer().create();
+                    dashInstance.initialize(video, targetUrl, true);
+                } else if (Hls.isSupported() && !targetUrl.match(/\.(mp4|webm|ogg|mov)$/i)) {
+                    hlsInstance = new Hls();
+                    hlsInstance.loadSource(targetUrl);
                     hlsInstance.attachMedia(video);
-                    hlsInstance.on(Hls.Events.MANIFEST_PARSED, function () {
-                        video.play().catch(() => {});
-                    });
-                    // หากโหลดแบบ HLS ไม่สำเร็จ ให้ลองสลับเล่นแบบ Direct Video อัตโนมัติ
-                    hlsInstance.on(Hls.Events.ERROR, function (event, data) {
-                        if (data.fatal) {
-                            destroyPlayers();
-                            badge.textContent = 'DIRECT';
-                            video.src = finalUrl;
-                            video.play().catch(() => {});
-                        }
-                    });
-                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                    badge.textContent = 'SAFARI HLS';
-                    video.src = finalUrl;
-                    video.addEventListener('loadedmetadata', function () {
-                        video.play().catch(() => {});
-                    }, { once: true });
+                    hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
                 } else {
-                    badge.textContent = 'DIRECT';
-                    video.src = finalUrl;
+                    video.src = targetUrl;
                     video.play().catch(() => {});
                 }
             }
@@ -375,27 +329,17 @@
             if (index !== -1) {
                 channelsData[index].url = newUrl;
                 channelsData[index].referer = newReferer;
-                localStorage.setItem('dino_football_channels_v2', JSON.stringify(channelsData));
+                localStorage.setItem('dino_football_channels_v3', JSON.stringify(channelsData));
                 renderChannels(document.getElementById('searchInput').value);
-                playUniversalStream(newUrl, newReferer);
+                playStream(newUrl);
             }
         }
 
-        // ฟังก์ชันขยายเต็มจอ (รองรับทั้ง iPad/iOS, Android และ PC)
         function toggleFullScreen() {
-            const video = document.getElementById('videoPlayer');
             const wrapper = document.getElementById('videoWrapper');
-
-            if (video.webkitEnterFullscreen) {
-                // สำหรับ iPhone / iPad Safari
-                video.webkitEnterFullscreen();
-            } else if (wrapper.requestFullscreen) {
-                wrapper.requestFullscreen();
-            } else if (wrapper.webkitRequestFullscreen) {
-                wrapper.webkitRequestFullscreen();
-            } else if (video.requestFullscreen) {
-                video.requestFullscreen();
-            }
+            const video = document.getElementById('videoPlayer');
+            if (wrapper.requestFullscreen) wrapper.requestFullscreen();
+            else if (video.webkitEnterFullscreen) video.webkitEnterFullscreen();
         }
 
         function closePlayer() {
@@ -406,8 +350,8 @@
         }
 
         function resetChannels() {
-            if (confirm('ต้องการรีเซ็ตลิงก์ทั้งหมดกลับเป็นค่าเริ่มต้นในโค้ดใช่หรือไม่?')) {
-                localStorage.removeItem('dino_football_channels_v2');
+            if (confirm('ต้องการรีเซ็ตลิงก์ทั้งหมดกลับเป็นค่าเริ่มต้นใช่หรือไม่?')) {
+                localStorage.removeItem('dino_football_channels_v3');
                 channelsData = JSON.parse(JSON.stringify(defaultChannelsData));
                 closePlayer();
                 renderChannels();
