@@ -127,7 +127,7 @@
 
     <script>
         const categories = [
-            { id: 'digital', name: 'ช่องทีวีดิจิตอล' }
+            { id: 'digital', name: 'ช่องทีวีดิจิตอล' },
             { id: 'bein', name: 'ช่องBEIN' },
             { id: 'truesport', name: 'ช่องทรูสปอร์ต' },
             { id: 'thaiball', name: 'ช่องบอลไทย' },
@@ -144,27 +144,33 @@
             { id: 'bein3', name: 'beIN SPORTS 3', category: 'bein', badge: 'HD', color: 'from-purple-900 to-zinc-900', url: '', referer: '' },
             { id: 'bein4', name: 'beIN SPORTS 4', category: 'bein', badge: 'HD', color: 'from-purple-900 to-zinc-900', url: '', referer: '' },
             { id: 'bein5', name: 'beIN SPORTS 5', category: 'bein', badge: 'HD', color: 'from-purple-900 to-zinc-900', url: '', referer: '' },
+            
             { id: 'ts1', name: 'True Premier Football 1', category: 'truesport', badge: 'FHD', color: 'from-red-900 to-zinc-900', url: '', referer: '' },
             { id: 'ts2', name: 'True Premier Football 2', category: 'truesport', badge: 'FHD', color: 'from-red-900 to-zinc-900', url: '', referer: '' },
             { id: 'ts3', name: 'True Premier Football 3', category: 'truesport', badge: 'HD', color: 'from-red-900 to-zinc-900', url: '', referer: '' },
             { id: 'ts4', name: 'True Sports 2', category: 'truesport', badge: 'HD', color: 'from-red-800 to-zinc-900', url: '', referer: '' },
             { id: 'ts5', name: 'True Sports 3', category: 'truesport', badge: 'HD', color: 'from-red-800 to-zinc-900', url: '', referer: '' },
+            
             { id: 'tb1', name: 'Ball Thai 1', category: 'thaiball', badge: 'LIVE', color: 'from-blue-900 to-zinc-900', url: '', referer: '' },
             { id: 'tb2', name: 'Ball Thai 2', category: 'thaiball', badge: 'LIVE', color: 'from-blue-900 to-zinc-900', url: '', referer: '' },
             { id: 'tb3', name: 'Ball Thai 3', category: 'thaiball', badge: 'LIVE', color: 'from-blue-900 to-zinc-900', url: '', referer: '' },
             { id: 'mono1', name: 'MONOMAX Sport 1', category: 'monomax', badge: 'HD', color: 'from-orange-900 to-zinc-900', url: '', referer: '' },
             { id: 'mono2', name: 'MONOMAX Sport 2', category: 'monomax', badge: 'HD', color: 'from-orange-900 to-zinc-900', url: '', referer: '' },
+            
             { id: 'ev1', name: 'LIVE EVENT 01', category: 'events', badge: 'EVENT', color: 'from-emerald-900 to-zinc-900', url: '', referer: '' },
             { id: 'ev2', name: 'LIVE EVENT 02', category: 'events', badge: 'EVENT', color: 'from-emerald-900 to-zinc-900', url: '', referer: '' },
+            
             { id: 'sp1', name: 'SPOTV 1', category: 'sport', badge: 'HD', color: 'from-sky-900 to-zinc-900', url: '', referer: '' },
             { id: 'sp2', name: 'SPOTV 2', category: 'sport', badge: 'HD', color: 'from-sky-900 to-zinc-900', url: '', referer: '' },
             { id: 'sp3', name: 'T Sports 7', category: 'sport', badge: 'HD', color: 'from-amber-900 to-zinc-900', url: '', referer: '' },
+            
             { id: 'sw1', name: 'Sky Sports Main Event', category: 'sportsworld', badge: 'UK', color: 'from-indigo-900 to-zinc-900', url: '', referer: '' },
             { id: 'sw2', name: 'TNT Sports 1', category: 'sportsworld', badge: 'UK', color: 'from-pink-900 to-zinc-900', url: '', referer: '' },
-            { id: 'ch3', name: 'CH3 HD', category: 'digital', badge: '33', color: 'from-zinc-800 to-zinc-950', url: 'https://edge-2.m-fixer.net:8092/stream/ais/3hd/master.m3u8', referer: '' },
-            { id: 'ch7', name: 'CH7 HD', category: 'digital', badge: '35', color: 'from-zinc-800 to-zinc-950', url: 'https://live-cdn.ch7.com/out/v1/eafeb02c55b64a15b278b1e66c7fc776/playlist_9.m3u8', referer: '' },
-            { id: 'thairath', name: 'Thairath TV', category: 'digital', badge: '32', color: 'from-zinc-800 to-zinc-950', url: 'https://thaipbs-live.cdn.byteark.com/live/playlist.m3u8', referer: '' },
-            { id: 'pptv', name: 'PPTV HD 36', category: 'digital', badge: '36', color: 'from-zinc-800 to-zinc-950', url: 'https://s.okwin321.ai/rs/1698/index.m3u8', referer: '' }
+            
+            { id: 'ch3', name: 'CH3 HD', category: 'digital', badge: '33', color: 'from-sky-800 to-zinc-950', url: 'https://edge-2.m-fixer.net:8092/stream/ais/3hd/master.m3u8', referer: '' },
+            { id: 'ch7', name: 'CH7 HD', category: 'digital', badge: '35', color: 'from-sky-800 to-zinc-950', url: 'https://live-cdn.ch7.com/out/v1/eafeb02c55b64a15b278b1e66c7fc776/playlist_9.m3u8', referer: '' },
+            { id: 'thairath', name: 'Thairath TV', category: 'digital', badge: '32', color: 'from-sky-800 to-zinc-950', url: 'https://thaipbs-live.cdn.byteark.com/live/playlist.m3u8', referer: '' },
+            { id: 'pptv', name: 'PPTV HD 36', category: 'digital', badge: '36', color: 'from-sky-800 to-zinc-950', url: 'https://s.okwin321.ai/rs/1698/index.m3u8', referer: '' }
         ];
 
         let channelsData = JSON.parse(localStorage.getItem('dino_football_channels_v4')) || defaultChannelsData;
