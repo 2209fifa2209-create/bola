@@ -336,6 +336,29 @@
             }
         }
 
+        // ระบบตรวจจับการปัดนิ้วย้อนกลับ (Swipe to Go Back) บนมือถือ/แท็บเล็ต
+        let touchStartX = 0;
+        let touchStartY = 0;
+        const playerOverlay = document.getElementById('player-overlay');
+
+        playerOverlay.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        playerOverlay.addEventListener('touchend', (e) => {
+            let touchEndX = e.changedTouches[0].screenX;
+            let touchEndY = e.changedTouches[0].screenY;
+            
+            let diffX = touchEndX - touchStartX;
+            let diffY = Math.abs(touchEndY - touchStartY);
+
+            // เงื่อนไข: ปัดจากซ้ายไปขวา (Swipe Right เกิน 80 พิกเซล) และเป็นการปัดในแนวราบ (diffY น้อยกว่า 100)
+            if (touchStartX < 80 && diffX > 80 && diffY < 100) {
+                closePlayer();
+            }
+        }, { passive: true });
+
         window.onload = () => {
             renderChannels('digital');
         };
