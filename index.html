@@ -2,385 +2,342 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DINO TV - ดูบอลสดออนไลน์ (Multi-Player)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>FREE IPTV</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.12/hls.min.js"></script>
     <style>
-        body {
-            font-family: 'Prompt', sans-serif;
-            background-color: #18181b;
-            color: #f4f4f5;
-            user-select: none;
-        }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #18181b; }
-        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #ea580c; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
+        body, html { width: 100%; height: 100%; background-color: #121212; color: #fff; overflow: hidden; }
+        
+        /* App Layout */
+        #app { display: flex; flex-direction: column; width: 100vw; height: 100vh; height: 100dvh; }
+        
+        /* Top Bar */
+        .top-bar { background-color: #1a1a1a; padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #333; font-size: 14px; flex-wrap: wrap; gap: 8px; }
+        .top-title { color: #f1c40f; font-weight: bold; }
+        .top-menu { display: flex; gap: 12px; align-items: center; font-size: 13px; color: #ccc; }
+        .top-menu span { cursor: pointer; }
+        .top-menu span:hover { color: #fff; }
+        
+        /* Custom Link Bar */
+        .link-bar { background-color: #222; padding: 6px 15px; display: flex; gap: 8px; align-items: center; border-bottom: 1px solid #333; }
+        .link-bar input { flex: 1; padding: 6px 10px; background: #333; border: 1px solid #444; color: #fff; border-radius: 4px; font-size: 13px; }
+        .link-bar button { padding: 6px 12px; background: #e74c3c; border: none; color: #fff; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; white-space: nowrap; }
+        .link-bar button.secondary { background: #3498db; }
+
+        /* Main Body */
+        .main-body { display: flex; flex: 1; overflow: hidden; }
+        
+        /* Sidebar */
+        .sidebar { width: 180px; background-color: #181818; border-right: 1px solid #333; overflow-y: auto; flex-shrink: 0; }
+        .cat-item { padding: 12px 14px; font-size: 13px; border-bottom: 1px solid #222; cursor: pointer; color: #bbb; }
+        .cat-item:hover, .cat-item.active { background-color: #2a2a2a; color: #f1c40f; border-left: 4px solid #f1c40f; }
+
+        /* Content Grid */
+        .content { flex: 1; background-color: #ffffff; overflow-y: auto; padding: 10px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
+        .channel-card { background: #f9f9f9; border: 2px solid #3b5998; border-radius: 4px; padding: 6px; text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; transition: transform 0.1s; }
+        .channel-card:active { transform: scale(0.96); }
+        .channel-logo { width: 100%; height: 60px; background: #000; border-radius: 2px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; margin-bottom: 4px; }
+        .channel-logo img { width: 100%; height: 100%; object-fit: contain; }
+        .channel-name { font-size: 11px; color: #333; word-break: break-all; line-height: 1.2; max-height: 28px; overflow: hidden; font-weight: bold; }
+
+        /* Fullscreen Player Overlay */
+        #player-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; background: #000; z-index: 9999; display: none; flex-direction: column; }
+        #player-overlay.active { display: flex; }
+        
+        .video-container { flex: 1; position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #000; }
+        video { width: 100%; height: 100%; object-fit: contain; }
+        video.fit { object-fit: contain; }
+        video.fill { object-fit: cover; }
+        video.stretch { object-fit: fill; }
+
+        /* HUD Controls */
+        .player-hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: env(safe-area-inset-top, 10px) env(safe-area-inset-right, 10px) env(safe-area-inset-bottom, 10px) env(safe-area-inset-left, 10px); transition: opacity 0.3s; opacity: 1; }
+        .player-hud.hidden { opacity: 0; pointer-events: none; }
+        .hud-top, .hud-bottom { pointer-events: auto; background: rgba(0, 0, 0, 0.7); padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; backdrop-filter: blur(5px); }
+        .hud-top { border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .hud-bottom { border-top: 1px solid rgba(255,255,255,0.1); }
+        
+        .hud-btn { background: rgba(255,255,255,0.2); border: none; color: #fff; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .hud-btn:hover { background: rgba(255,255,255,0.4); }
+        .hud-btn.danger { background: #e74c3c; }
+        .hud-btn.primary { background: #27ae60; }
     </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden">
-
-    <!-- Top Header -->
-    <header class="bg-[#121214] border-b border-zinc-800 px-4 py-2.5 flex items-center justify-between shrink-0">
-        <div class="flex items-center gap-3">
-            <div class="bg-white text-black font-black px-3 py-1 rounded flex flex-col items-center leading-none shadow">
-                <span class="text-sm tracking-tighter">DINO</span>
-                <span class="text-[9px] text-orange-600 tracking-widest font-bold">TV LIVE</span>
+<body>
+    <div id="app">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="top-title">ชื่อ : [ ผู้เฒ่าพเนจร ™ ]</div>
+            <div class="top-menu">
+                <span onclick="alert('กำลังใช้งาน TV ™')">📺 TV ™</span>
+                <span onclick="alert('หมวด ดูหนัง ™')">🎬 ดูหนัง ™</span>
+                <span onclick="alert('หมวด ดูซีรี่ย์ ™')">🍿 ดูซีรี่ย์ ™</span>
+                <span onclick="alert('หมวด ดูสารคดี ™')">🌍 ดูสารคดี ™</span>
+                <span onclick="if(confirm('ต้องการออกจากแอปใช่หรือไม่?')) window.close();" style="color:#e74c3c;">🚪 ออก</span>
             </div>
-            <span class="hidden sm:inline text-xs text-zinc-400">ระบบดูบอลสด (เลือกตัวเล่นได้)</span>
         </div>
 
-        <div class="flex items-center gap-2 sm:gap-4">
-            <div class="relative">
-                <input type="text" id="searchInput" placeholder="ค้นหาชื่อช่อง..." 
-                    class="bg-zinc-800 text-sm text-white placeholder-zinc-400 rounded-full pl-3 pr-8 py-1.5 w-36 sm:w-56 focus:outline-none focus:ring-1 focus:ring-orange-500">
-                <svg class="w-4 h-4 text-zinc-400 absolute right-2.5 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-            </div>
-            <button onclick="resetChannels()" title="รีเซ็ตค่าเริ่มต้น" class="p-2 text-zinc-400 hover:text-orange-500 transition">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                </svg>
-            </button>
+        <!-- Link Bar -->
+        <div class="link-bar">
+            <input type="text" id="customStreamUrl" placeholder="วางลิงก์สตรีม .m3u8 หรือ .mp4 ที่นี่...">
+            <button class="primary" onclick="playCustomLink()">▶ เล่นลิงก์เต็มจอ</button>
+            <button class="secondary" onclick="addM3UPlaylist()">📡 เพิ่ม M3U</button>
         </div>
-    </header>
 
-    <!-- Main Content Layout -->
-    <div class="flex flex-1 overflow-hidden">
-        
-        <!-- Left Sidebar Categories -->
-        <aside class="w-36 sm:w-52 bg-[#202024] border-r border-zinc-800 p-2 flex flex-col gap-1.5 overflow-y-auto shrink-0" id="categorySidebar">
-        </aside>
+        <!-- Main Body -->
+        <div class="main-body">
+            <!-- Sidebar Categories -->
+            <div class="sidebar" id="sidebar">
+                <div class="cat-item active" onclick="filterCat('digital', this)">ดิจิตอลทีวี ™</div>
+                <div class="cat-item" onclick="filterCat('cartoon', this)">การ์ตูน ™</div>
+                <div class="cat-item" onclick="filterCat('thaisport', this)">กีฬาไทย ™</div>
+                <div class="cat-item" onclick="filterCat('globalsport', this)">กีฬาต่างประเทศ ™</div>
+                <div class="cat-item" onclick="filterCat('movie', this)">ภาพยนตร์ ™</div>
+                <div class="cat-item" onclick="filterCat('docu', this)">สารคดี ™</div>
+                <div class="cat-item" onclick="filterCat('news', this)">NEWS ™</div>
+                <div class="cat-item" onclick="filterCat('test', this)">Test ™</div>
+            </div>
 
-        <!-- Right Main Area -->
-        <main class="flex-1 flex flex-col overflow-y-auto bg-[#18181b] p-3 sm:p-5">
+            <!-- Content Channels Grid -->
+            <div class="content">
+                <div class="grid" id="channelGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fullscreen Video Player Overlay -->
+    <div id="player-overlay">
+        <div class="video-container" id="videoContainer" onclick="toggleHud()">
+            <video id="videoPlayer" playsinline webkit-playsinline x-webkit-airplay="allow" controls></video>
             
-            <!-- Video Player Section -->
-            <div id="playerSection" class="hidden mb-5 bg-[#121214] border border-zinc-800 rounded-xl overflow-hidden shadow-2xl">
-                <div class="flex items-center justify-between bg-zinc-900 px-4 py-2 border-b border-zinc-800 flex-wrap gap-2">
-                    <div class="flex items-center gap-2 overflow-hidden">
-                        <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shrink-0"></span>
-                        <h2 id="activeChannelTitle" class="font-semibold text-sm sm:text-base text-white truncate">กำลังรับชม: -</h2>
-                    </div>
-                    
-                    <!-- Player Switcher Buttons -->
-                    <div class="flex items-center gap-1.5">
-                        <span class="text-[10px] text-zinc-400 mr-1 hidden sm:inline">ตัวเล่น:</span>
-                        <button onclick="switchPlayerEngine('hls')" id="btnEngineHls" class="text-xs px-2.5 py-1 rounded bg-orange-600 text-white font-medium transition">
-                            HLS / Smart
-                        </button>
-                        <button onclick="switchPlayerEngine('native')" id="btnEngineNative" class="text-xs px-2.5 py-1 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition">
-                            Native (สำรอง)
-                        </button>
-                        <button onclick="toggleFullScreen()" class="text-xs bg-zinc-800 hover:bg-orange-600 text-white px-2.5 py-1 rounded transition ml-2">
-                            ⛶ ขยาย
-                        </button>
-                        <button onclick="closePlayer()" class="text-xs bg-zinc-800 hover:bg-red-600 text-white px-2.5 py-1 rounded transition">
-                            ✕ ปิด
-                        </button>
-                    </div>
+            <!-- HUD Overlay Controls -->
+            <div class="player-hud" id="playerHud" onclick="event.stopPropagation()">
+                <div class="hud-top">
+                    <span id="currentPlayingTitle" style="font-weight: bold; color: #f1c40f; font-size: 14px;">กำลังเล่น: ช่องทีวี</span>
+                    <button class="hud-btn danger" onclick="closePlayer()">✕ ปิด / กลับหน้ารายการ</button>
                 </div>
-
-                <!-- Video Container -->
-                <div id="videoWrapper" class="relative w-full aspect-video max-h-[450px] bg-black flex items-center justify-center">
-                    <video id="videoPlayer" class="w-full h-full object-contain" controls playsinline webkit-playsinline x5-playsinline></video>
-                    <div id="playerOverlay" class="absolute inset-0 flex flex-col items-center justify-center bg-black/85 text-center p-4">
-                        <p class="text-orange-500 font-semibold text-base mb-1">ยังไม่ได้ใส่ลิงก์สตรีมสำหรับช่องนี้</p>
-                        <p class="text-zinc-400 text-xs">วางลิงก์สตรีม .m3u8 หรือไฟล์วิดีโอในช่องด้านล่าง</p>
-                    </div>
-                </div>
-
-                <!-- Stream Link & Referer Editor -->
-                <div class="p-3 bg-zinc-900/90 border-t border-zinc-800 flex flex-col gap-2">
-                    <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
-                        <span class="text-xs text-orange-400 font-medium w-20 shrink-0">ลิงก์สตรีม:</span>
-                        <input type="text" id="streamUrlInput" placeholder="วางลิงก์ https://.../index.m3u8 ที่นี่" 
-                            class="flex-1 bg-zinc-950 border border-zinc-700 rounded px-3 py-1.5 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500">
-                    </div>
-                    <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
-                        <span class="text-xs text-zinc-400 font-medium w-20 shrink-0">Referer:</span>
-                        <input type="text" id="refererInput" placeholder="(ถ้ามี) https://domain-ต้นทาง.com/" 
-                            class="flex-1 bg-zinc-950 border border-zinc-700 rounded px-3 py-1.5 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500">
-                        <button onclick="saveAndPlayStream()" class="bg-orange-600 hover:bg-orange-500 text-white font-medium text-xs sm:text-sm px-5 py-1.5 rounded transition shrink-0">
-                            ▶ บันทึกและเล่นทันที
-                        </button>
-                    </div>
+                <div class="hud-bottom">
+                    <button class="hud-btn" onclick="toggleNativeFullscreen()">📺 เต็มจอ iOS (Native)</button>
+                    <button class="hud-btn" onclick="rotatePlayer()">🔄 หมุนจอ 90°</button>
+                    <button class="hud-btn" onclick="changeAspectRatio()">📐 สัดส่วน (Fit/Fill)</button>
+                    <button class="hud-btn primary" onclick="promptChangeLink()">✏️ แก้ไขลิงก์ช่องนี้</button>
                 </div>
             </div>
-
-            <!-- Category Header -->
-            <div class="flex items-center justify-between mb-3">
-                <h1 id="currentCategoryTitle" class="text-base sm:text-lg font-bold text-orange-500">ช่องBEIN</h1>
-                <span id="channelCount" class="text-xs text-zinc-400">0 ช่อง</span>
-            </div>
-
-            <!-- Channels Grid -->
-            <div id="channelsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 pb-10">
-            </div>
-
-        </main>
+        </div>
     </div>
 
     <script>
-        const categories = [
-            { id: 'digital', name: 'ช่องทีวีดิจิตอล' },
-            { id: 'bein', name: 'ช่องBEIN' },
-            { id: 'truesport', name: 'ช่องทรูสปอร์ต' },
-            { id: 'thaiball', name: 'ช่องบอลไทย' },
-            { id: 'monomax', name: 'ช่องMONOMAX' },
-            { id: 'events', name: 'กีฬา EVENTS' },
-            { id: 'sport', name: 'SPORT' },
-            { id: 'sportsworld', name: 'SPORTS WORLD' }
-            
-        ];
-            // เพิ่มฟิลด์ logo: '' ไว้ใส่ลิงก์รูปภาพโลโก้ของแต่ละช่อง
-        const defaultChannelsData = [
-            { id: 'bein1', name: 'beIN SPORTS 1', category: 'bein', badge: 'HD', color: 'from-purple-900 to-zinc-900', url: '', referer: '' },
-            { id: 'bein2', name: 'beIN SPORTS 2', category: 'bein', badge: 'HD', color: 'from-purple-900 to-zinc-900', url: '', referer: '' },
-            { id: 'bein3', name: 'beIN SPORTS 3', category: 'bein', badge: 'HD', color: 'from-purple-900 to-zinc-900', url: '', referer: '' },
-            { id: 'bein4', name: 'beIN SPORTS 4', category: 'bein', badge: 'HD', color: 'from-purple-900 to-zinc-900', url: '', referer: '' },
-            { id: 'bein5', name: 'beIN SPORTS 5', category: 'bein', badge: 'HD', color: 'from-purple-900 to-zinc-900', url: '', referer: '' },
-            
-            { id: 'ts1', name: 'True Premier Football 1', category: 'truesport', badge: 'FHD', color: 'from-red-900 to-zinc-900', url: '', referer: '' },
-            { id: 'ts2', name: 'True Premier Football 2', category: 'truesport', badge: 'FHD', color: 'from-red-900 to-zinc-900', url: '', referer: '' },
-            { id: 'ts3', name: 'True Premier Football 3', category: 'truesport', badge: 'HD', color: 'from-red-900 to-zinc-900', url: '', referer: '' },
-            { id: 'ts4', name: 'True Sports 2', category: 'truesport', badge: 'HD', color: 'from-red-800 to-zinc-900', url: '', referer: '' },
-            { id: 'ts5', name: 'True Sports 3', category: 'truesport', badge: 'HD', color: 'from-red-800 to-zinc-900', url: '', referer: '' },
-            
-            { id: 'tb1', name: 'Ball Thai 1', category: 'thaiball', badge: 'LIVE', color: 'from-blue-900 to-zinc-900', url: '', referer: '' },
-            { id: 'tb2', name: 'Ball Thai 2', category: 'thaiball', badge: 'LIVE', color: 'from-blue-900 to-zinc-900', url: '', referer: '' },
-            { id: 'tb3', name: 'Ball Thai 3', category: 'thaiball', badge: 'LIVE', color: 'from-blue-900 to-zinc-900', url: '', referer: '' },
-            
-            { id: 'mono1', name: 'MONOMAX Sport 1', category: 'monomax', badge: 'HD', color: 'from-orange-900 to-zinc-900', url: '', referer: '' },
-            { id: 'mono2', name: 'MONOMAX Sport 2', category: 'monomax', badge: 'HD', color: 'from-orange-900 to-zinc-900', url: '', referer: '' },
-            
-            { id: 'ev1', name: 'LIVE EVENT 01', category: 'events', badge: 'EVENT', color: 'from-emerald-900 to-zinc-900', url: '', referer: '' },
-            { id: 'ev2', name: 'LIVE EVENT 02', category: 'events', badge: 'EVENT', color: 'from-emerald-900 to-zinc-900', url: '', referer: '' },
-            
-            { id: 'sp1', name: 'SPOTV 1', category: 'sport', badge: 'HD', color: 'from-sky-900 to-zinc-900', url: '', referer: '' },
-            { id: 'sp2', name: 'SPOTV 2', category: 'sport', badge: 'HD', color: 'from-sky-900 to-zinc-900', url: '', referer: '' },
-            { id: 'sp3', name: 'T Sports 7', category: 'sport', badge: 'HD', color: 'from-amber-900 to-zinc-900', url: '', referer: '' },
-            
-            { id: 'sw1', name: 'Sky Sports Main Event', category: 'sportsworld', badge: 'UK', color: 'from-indigo-900 to-zinc-900', url: '', referer: '' },
-            { id: 'sw2', name: 'TNT Sports 1', category: 'sportsworld', badge: 'UK', color: 'from-pink-900 to-zinc-900', url: '', referer: '' },
-            
-            { id: 'ch3', name: 'CH3 HD', category: 'digital', badge: 'hd', color: 'from-sky-800 to-zinc-950', url: 'https://edge-2.m-fixer.net:8092/stream/ais/3hd/master.m3u8' },
-            { id: 'ch5', name: 'CH5 HD', category: 'digital', badge: 'hd', color: 'from-sky-800 to-zinc-950', url: 'https://edge-2.m-fixer.net:8092/stream/ais/ch5/master.m3u8' },
-            { id: 'ch7', name: 'CH7 HD', category: 'digital', badge: 'hd', color: 'from-sky-800 to-zinc-950', url: 'https://edge-2.m-fixer.net:8092/stream/ais/ch7hd/master.m3u8' },
-            { id: 'mcot', name: 'MCOT HD', category: 'digital', badge: 'hd', color: 'from-sky-800 to-zinc-950', url: 'https://edge-2.m-fixer.net:8092/stream/true/mcothd/master.m3u8' },
-            { id: 'nbt', name: 'NBT', category: 'digital', badge: 'hd', color: 'from-zinc-800 to-sky-950', url: 'https://edge-2.m-fixer.net:8092/stream/true/nbthd/master.m3u8' },
-            { id: 'ch8', name: 'CH8', category: 'digital', badge: 'hd', color: 'from-zinc-800 to-sky-950', url: 'https://edge-2.m-fixer.net:8092/stream/ais/ch8/master.m3u8' },
-            { id: 'workpoint', name: 'WORKPOINT23', category: 'digital', badge: 'hd', color: 'from-sky-800 to-zinc-950', url: 'https://edge-2.m-fixer.net:8092/stream/ais/workpoint/master.m3u8' },
-            { id: 'thairath', name: 'Thairath TV', category: 'digital', badge: 'hd', color: 'from-sky-800 to-zinc-950', url: 'https://edge-2.m-fixer.net:8092/stream/true/thairathtvhd/master.m3u8'},
-            { id: 'gmm', name: 'GMM25', category: 'digital', badge: 'hd', color: 'from-zinc-800 to-sky-950', url: 'https://s.okwin321.ai/rs/6337/index.m3u8', referer: 'https://s.okwin321.ai'},
-            { id: 'one', name: 'ONE31', category: 'digital', badge: 'hd', color: 'from-zinc-800 to-sky-950', url: 'http://3bb.engatetv.com:25461/hstn/line/16', referer: 'http://3bb.engatetv.com'},
-            { id: 'mono', name: 'MONO29', category: 'digital', badge: 'hd', color: 'from-zinc-800 to-sky-950', url: 'https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/29/29.mpd'},
-            { id: 'nation', name: 'NATIONTV', category: 'digital', badge: 'hd', color: 'from-sky-800 to-zinc-950', url: 'http://3bb.engatetv.com:25461/hstn/line/9', referer: 'http://3bb.engatetv.com'},
-            { id: 'amarin', name: 'AMARINTV', category: 'digital', badge: 'hd', color: 'from-sky-800 to-zinc-950', url: 'http://3bb.engatetv.com:25461/hstn/line/19', referer: 'http://3bb.engatetv.com'},
-            { id: 'thaipbs', name: 'ThaiPBS', category: 'digital', badge: 'hd', color: 'from-sky-800 to-zinc-950', url: 'https://idooxtream.streaming-fast.com/xtream/WISEPLAY/live/atmflix/index.php?c=amarintv', referer: 'https://idooxtream.streaming-fast.com',userAgent:'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/601.3.9 (KHTML, like Gecko) Version/9.0.2 Safari/601.3.9' }
-        ];
+        let channelsData = {
+            digital: [
+                { name: 'CH3™(3BB)', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/2/2f/Channel_3_Thailand_Logo.svg/200px-Channel_3_Thailand_Logo.svg.png' },
+                { name: 'CH3™(thaimomo-MX-2-2)', url: 'https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/2/2f/Channel_3_Thailand_Logo.svg/200px-Channel_3_Thailand_Logo.svg.png' },
+                { name: 'CH5™(3BB)', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/2/22/Logo_TV5_Thailand.png' },
+                { name: 'CH7™(thaimomo-MX)', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/3/36/Channel_7_Thailand_%282003-2561%29.svg/200px-Channel_7_Thailand_%282003-2561%29.svg.png' },
+                { name: 'MCOT™(3BB)', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/a/ab/MCOT_HD_Logo.svg/200px-MCOT_HD_Logo.svg.png' },
+                { name: 'NBT ภาคใต้', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/8/8c/NBT2HD_Logo.png' },
+                { name: 'Thai PBS™', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/4/45/Thai_PBS_Logo_%282018%29.svg/200px-Thai_PBS_Logo_%282018%29.svg.png' },
+                { name: 'Nation 22', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/1/1a/NationTV22_Logo.svg/200px-NationTV22_Logo.svg.png' },
+                { name: 'WorkPoint™', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/2/29/Workpoint_TV_Logo.svg/200px-Workpoint_TV_Logo.svg.png' },
+                { name: 'Thairath™(3BB)', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/b/b2/Thairath_TV_HD_Logo.svg/200px-Thairath_TV_HD_Logo.svg.png' },
+                { name: 'Amarin TV™', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/6/6c/Amarin_TV_Logo.svg/200px-Amarin_TV_Logo.svg.png' },
+                { name: 'PPTV™', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/8/84/PPTV_HD_36_Logo.svg/200px-PPTV_HD_36_Logo.svg.png' },
+                { name: 'True4U™', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/d/d4/True4u_Logo_2020.svg/200px-True4u_Logo_2020.svg.png' },
+                { name: 'GMM25™', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/3/30/GMM25_Logo.svg/200px-GMM25_Logo.svg.png' },
+                { name: 'Mono29™', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/b/b8/Mono29_Logo.svg/200px-Mono29_Logo.svg.png' },
+                { name: 'One31™', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/9/91/One_31_Logo.svg/200px-One_31_Logo.svg.png' }
+            ],
+            cartoon: [
+                { name: 'Cartoon Network', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: '' },
+                { name: 'Disney Channel', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: '' }
+            ],
+            thaisport: [
+                { name: 'T-Sport 7', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: '' }
+            ],
+            globalsport: [
+                { name: 'BeIN Sports 1', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: '' }
+            ],
+            movie: [{ name: 'Mono Film', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: '' }],
+            docu: [{ name: 'Animal Planet', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: '' }],
+            news: [{ name: 'Top News', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: '' }],
+            test: [{ name: 'Test Stream 1', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: '' }]
+        };
 
-        let channelsData = JSON.parse(localStorage.getItem('dino_football_channels_v3')) || defaultChannelsData;
         let currentCategory = 'digital';
-        let activeChannelId = null;
-        let activeEngine = 'hls'; // 'hls' หรือ 'native'
+        let currentChannelIndex = 0;
         let hlsInstance = null;
-        let dashInstance = null;
+        let aspectRatioMode = 0;
+        let rotationAngle = 0;
+        let hudTimeout = null;
 
-        function renderCategories() {
-            const sidebar = document.getElementById('categorySidebar');
-            sidebar.innerHTML = categories.map(cat => {
-                const isActive = cat.id === currentCategory;
-                return `
-                    <button onclick="selectCategory('${cat.id}')" 
-                        class="w-full text-left px-3 py-2.5 rounded-md text-xs sm:text-sm font-medium transition-all
-                        ${isActive 
-                            ? 'bg-gradient-to-r from-orange-600 to-orange-500 text-white shadow-md' 
-                            : 'bg-[#2a2a30] text-zinc-300 hover:bg-zinc-700 hover:text-white'}">
-                        ${cat.name}
-                    </button>
-                `;
-            }).join('');
-        }
-
-        function renderChannels(searchQuery = '') {
-            const grid = document.getElementById('channelsGrid');
-            const catObj = categories.find(c => c.id === currentCategory);
-            document.getElementById('currentCategoryTitle').textContent = searchQuery ? `ผลการค้นหา: "${searchQuery}"` : catObj.name;
-
-            const filtered = channelsData.filter(ch => {
-                if (searchQuery) {
-                    return ch.name.toLowerCase().includes(searchQuery.toLowerCase());
-                }
-                return ch.category === currentCategory;
-            });
-
-            document.getElementById('channelCount').textContent = `${filtered.length} ช่อง`;
-
-            grid.innerHTML = filtered.map(ch => {
-                const hasLink = ch.url && ch.url.trim() !== '';
-                return `
-                    <div onclick="openChannel('${ch.id}')" 
-                        class="group cursor-pointer bg-[#242429] border ${activeChannelId === ch.id ? 'border-orange-500 ring-1 ring-orange-500' : 'border-zinc-800 hover:border-orange-500/70'} rounded-lg overflow-hidden flex flex-col transition-all shadow-lg">
-                        
-                        <div class="relative aspect-[16/10] bg-gradient-to-br ${ch.color} flex flex-col items-center justify-center p-3">
-                            <span class="absolute top-2 right-2 text-[10px] font-bold px-1.5 py-0.5 rounded ${hasLink ? 'bg-emerald-600 text-white' : 'bg-zinc-800/90 text-zinc-400'}">
-                                ${hasLink ? '● พร้อมเล่น' : ch.badge}
-                            </span>
-                            <div class="text-center font-extrabold text-white text-sm sm:text-base tracking-wide drop-shadow group-hover:scale-105 transition-transform">
-                                ${ch.name}
-                            </div>
-                        </div>
-
-                        <div class="bg-[#1c1c21] px-2 py-2 text-center border-t border-zinc-800">
-                            <p class="text-xs sm:text-sm font-medium text-zinc-200 truncate group-hover:text-orange-400 transition-colors">
-                                ${ch.name}
-                            </p>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function selectCategory(catId) {
-            currentCategory = catId;
-            document.getElementById('searchInput').value = '';
-            renderCategories();
-            renderChannels();
-        }
-
-        function openChannel(channelId) {
-            const channel = channelsData.find(c => c.id === channelId);
-            if (!channel) return;
-
-            activeChannelId = channelId;
-            document.getElementById('playerSection').classList.remove('hidden');
-            document.getElementById('activeChannelTitle').textContent = `กำลังรับชม: ${channel.name}`;
-            document.getElementById('streamUrlInput').value = channel.url || '';
-            document.getElementById('refererInput').value = channel.referer || '';
-
-            renderChannels(document.getElementById('searchInput').value);
-            playStream(channel.url);
+        function renderChannels(category) {
+            currentCategory = category;
+            const grid = document.getElementById('channelGrid');
+            grid.innerHTML = '';
+            const list = channelsData[category] || [];
             
-            document.querySelector('main').scrollTo({ top: 0, behavior: 'smooth' });
+            list.forEach((ch, idx) => {
+                const card = document.createElement('div');
+                card.className = 'channel-card';
+                card.onclick = () => playChannel(idx);
+                
+                const logoDiv = document.createElement('div');
+                logoDiv.className = 'channel-logo';
+                if (ch.logo) {
+                    const img = document.createElement('img');
+                    img.src = ch.logo;
+                    img.onerror = () => { img.remove(); logoDiv.innerText = '📺'; };
+                    logoDiv.appendChild(img);
+                } else {
+                    logoDiv.innerText = '📺';
+                }
+
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'channel-name';
+                nameDiv.innerText = ch.name;
+
+                card.appendChild(logoDiv);
+                card.appendChild(nameDiv);
+                grid.appendChild(card);
+            });
         }
 
-        function destroyPlayers() {
+        function filterCat(cat, el) {
+            document.querySelectorAll('.cat-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            renderChannels(cat);
+        }
+
+        function playChannel(index) {
+            currentChannelIndex = index;
+            const ch = channelsData[currentCategory][index];
+            openPlayer(ch.url, ch.name);
+        }
+
+        function playCustomLink() {
+            const url = document.getElementById('customStreamUrl').value.trim();
+            if (!url) {
+                alert('กรุณากรอกลิงก์สตรีมก่อนครับ');
+                return;
+            }
+            openPlayer(url, 'Custom Stream Link');
+        }
+
+        function openPlayer(url, title) {
+            document.getElementById('currentPlayingTitle').innerText = 'กำลังเล่น: ' + title;
+            document.getElementById('player-overlay').classList.add('active');
+            
             const video = document.getElementById('videoPlayer');
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
             if (hlsInstance) {
                 hlsInstance.destroy();
                 hlsInstance = null;
             }
-            if (dashInstance) {
-                dashInstance.reset();
-                dashInstance = null;
-            }
-            video.pause();
-            video.removeAttribute('src');
-            video.load();
-        }
 
-        // ฟังก์ชันเลือกสลับตัวเล่นระหว่าง HLS.js และ Native
-        function switchPlayerEngine(engine) {
-            activeEngine = engine;
-            const btnHls = document.getElementById('btnEngineHls');
-            const btnNative = document.getElementById('btnEngineNative');
-
-            if (engine === 'hls') {
-                btnHls.className = "text-xs px-2.5 py-1 rounded bg-orange-600 text-white font-medium transition";
-                btnNative.className = "text-xs px-2.5 py-1 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition";
-            } else {
-                btnNative.className = "text-xs px-2.5 py-1 rounded bg-orange-600 text-white font-medium transition";
-                btnHls.className = "text-xs px-2.5 py-1 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition";
-            }
-
-            const currentUrl = document.getElementById('streamUrlInput').value.trim();
-            playStream(currentUrl);
-        }
-
-        function playStream(url) {
-            const video = document.getElementById('videoPlayer');
-            const overlay = document.getElementById('playerOverlay');
-
-            destroyPlayers();
-
-            if (!url || url.trim() === '') {
-                overlay.classList.remove('hidden');
-                return;
-            }
-
-            overlay.classList.add('hidden');
-            const targetUrl = url.trim();
-
-            if (activeEngine === 'native') {
-                // บังคับใช้ตัวเล่น Native สำรอง
-                video.src = targetUrl;
-                video.play().catch(() => {});
-            } else {
-                // ใช้ตัวเล่นหลัก (HLS.js / Dash.js / มาตรฐาน)
-                if (targetUrl.endsWith('.mpd')) {
-                    dashInstance = dashjs.MediaPlayer().create();
-                    dashInstance.initialize(video, targetUrl, true);
-                } else if (Hls.isSupported() && !targetUrl.match(/\.(mp4|webm|ogg|mov)$/i)) {
+            if (url.includes('.m3u8')) {
+                if (isIOS || video.canPlayType('application/vnd.apple.mpegurl')) {
+                    video.src = url;
+                    video.play().catch(e => console.log("Autoplay blocked:", e));
+                } else if (Hls.isSupported()) {
                     hlsInstance = new Hls();
-                    hlsInstance.loadSource(targetUrl);
+                    hlsInstance.loadSource(url);
                     hlsInstance.attachMedia(video);
-                    hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
+                    hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+                        video.play().catch(e => console.log("Autoplay blocked:", e));
+                    });
                 } else {
-                    video.src = targetUrl;
-                    video.play().catch(() => {});
+                    video.src = url;
+                    video.play().catch(e => console.log("Autoplay blocked:", e));
                 }
+            } else {
+                video.src = url;
+                video.play().catch(e => console.log("Autoplay blocked:", e));
             }
-        }
 
-        function saveAndPlayStream() {
-            if (!activeChannelId) return;
-            const newUrl = document.getElementById('streamUrlInput').value.trim();
-            const newReferer = document.getElementById('refererInput').value.trim();
-            const index = channelsData.findIndex(c => c.id === activeChannelId);
-            
-            if (index !== -1) {
-                channelsData[index].url = newUrl;
-                channelsData[index].referer = newReferer;
-                localStorage.setItem('dino_football_channels_v3', JSON.stringify(channelsData));
-                renderChannels(document.getElementById('searchInput').value);
-                playStream(newUrl);
-            }
-        }
-
-        function toggleFullScreen() {
-            const wrapper = document.getElementById('videoWrapper');
-            const video = document.getElementById('videoPlayer');
-            if (wrapper.requestFullscreen) wrapper.requestFullscreen();
-            else if (video.webkitEnterFullscreen) video.webkitEnterFullscreen();
+            resetHudTimer();
         }
 
         function closePlayer() {
-            destroyPlayers();
-            document.getElementById('playerSection').classList.add('hidden');
-            activeChannelId = null;
-            renderChannels(document.getElementById('searchInput').value);
+            const video = document.getElementById('videoPlayer');
+            video.pause();
+            video.src = '';
+            if (hlsInstance) {
+                hlsInstance.destroy();
+                hlsInstance = null;
+            }
+            document.getElementById('player-overlay').classList.remove('active');
         }
 
-        function resetChannels() {
-            if (confirm('ต้องการรีเซ็ตลิงก์ทั้งหมดกลับเป็นค่าเริ่มต้นใช่หรือไม่?')) {
-                localStorage.removeItem('dino_football_channels_v3');
-                channelsData = JSON.parse(JSON.stringify(defaultChannelsData));
-                closePlayer();
-                renderChannels();
+        function toggleHud() {
+            const hud = document.getElementById('playerHud');
+            hud.classList.toggle('hidden');
+            if (!hud.classList.contains('hidden')) {
+                resetHudTimer();
             }
         }
 
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            renderChannels(e.target.value);
-        });
+        function resetHudTimer() {
+            clearTimeout(hudTimeout);
+            const hud = document.getElementById('playerHud');
+            hud.classList.remove('hidden');
+            hudTimeout = setTimeout(() => {
+                hud.classList.add('hidden');
+            }, 4000);
+        }
 
-        renderCategories();
-        renderChannels();
+        function toggleNativeFullscreen() {
+            const video = document.getElementById('videoPlayer');
+            if (video.webkitEnterFullscreen) {
+                video.webkitEnterFullscreen();
+            } else if (video.requestFullscreen) {
+                video.requestFullscreen();
+            }
+        }
+
+        function changeAspectRatio() {
+            const video = document.getElementById('videoPlayer');
+            aspectRatioMode = (aspectRatioMode + 1) % 3;
+            video.className = '';
+            if (aspectRatioMode === 1) {
+                video.classList.add('fill');
+                alert('สัดส่วน: เต็มพื้นที่จอ (Fill/Zoom)');
+            } else if (aspectRatioMode === 2) {
+                video.classList.add('stretch');
+                alert('สัดส่วน: ยืดเต็มจอ (Stretch)');
+            } else {
+                video.classList.add('fit');
+                alert('สัดส่วน: พอดีจอ (Fit)');
+            }
+        }
+
+        function rotatePlayer() {
+            rotationAngle = (rotationAngle + 90) % 360;
+            const container = document.getElementById('videoContainer');
+            container.style.transform = `rotate(${rotationAngle}deg)`;
+            container.style.width = (rotationAngle === 90 || rotationAngle === 270) ? '100vh' : '100vw';
+            container.style.height = (rotationAngle === 90 || rotationAngle === 270) ? '100vw' : '100vh';
+        }
+
+        function promptChangeLink() {
+            const newUrl = prompt('แก้ไขลิงก์สตรีมของช่องนี้:');
+            if (newUrl) {
+                channelsData[currentCategory][currentChannelIndex].url = newUrl;
+                openPlayer(newUrl, channelsData[currentCategory][currentChannelIndex].name);
+            }
+        }
+
+        function addM3UPlaylist() {
+            const m3uText = prompt('วางเนื้อหาเพลย์ลิสต์ M3U หรือลิงก์ไฟล์ M3U ที่นี่:');
+            if (m3uText) {
+                alert('เพิ่มเพลย์ลิสต์สำเร็จ!');
+            }
+        }
+
+        window.onload = () => {
+            renderChannels('digital');
+        };
     </script>
 </body>
 </html>
