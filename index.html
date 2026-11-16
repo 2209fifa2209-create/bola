@@ -43,7 +43,7 @@
         .channel-name { font-size: 11px; color: #333; word-break: break-all; line-height: 1.2; max-height: 28px; overflow: hidden; font-weight: bold; }
 
         /* Fullscreen Player Overlay */
-        #player-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; background: #000; z-index: 9999; display: none; flex-direction: column; }
+        #player-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; background: #000; z-index: 99999; display: none; flex-direction: column; }
         #player-overlay.active { display: flex; }
         
         .video-container { flex: 1; position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #000; }
@@ -53,13 +53,13 @@
         video.stretch { object-fit: fill; }
 
         /* HUD Controls */
-        .player-hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: env(safe-area-inset-top, 10px) env(safe-area-inset-right, 10px) env(safe-area-inset-bottom, 10px) env(safe-area-inset-left, 10px); transition: opacity 0.3s; opacity: 1; }
+        .player-hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: env(safe-area-inset-top, 10px) env(safe-area-inset-right, 10px) env(safe-area-inset-bottom, 10px) env(safe-area-inset-left, 10px); transition: opacity 0.3s; opacity: 1; z-index: 100000; }
         .player-hud.hidden { opacity: 0; pointer-events: none; }
-        .hud-top, .hud-bottom { pointer-events: auto; background: rgba(0, 0, 0, 0.7); padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; backdrop-filter: blur(5px); }
+        .hud-top, .hud-bottom { pointer-events: auto; background: rgba(0, 0, 0, 0.85); padding: 12px 15px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; backdrop-filter: blur(5px); }
         .hud-top { border-bottom: 1px solid rgba(255,255,255,0.1); }
         .hud-bottom { border-top: 1px solid rgba(255,255,255,0.1); }
         
-        .hud-btn { background: rgba(255,255,255,0.2); border: none; color: #fff; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .hud-btn { background: rgba(255,255,255,0.25); border: none; color: #fff; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; }
         .hud-btn:hover { background: rgba(255,255,255,0.4); }
         .hud-btn.danger { background: #e74c3c; }
         .hud-btn.primary { background: #27ae60; }
@@ -69,7 +69,7 @@
     <div id="app">
         <!-- Top Bar -->
         <div class="top-bar">
-            <div class="top-title">ชื่อ : [ ผู้เฒ่าพเนจร ™ ]</div>
+            <div class="top-title">ชื่อ : [ FREE IPTV ]</div>
             <div class="top-menu">
                 <span onclick="alert('กำลังใช้งาน TV ™')">📺 TV ™</span>
                 <span onclick="alert('หมวด ดูหนัง ™')">🎬 ดูหนัง ™</span>
@@ -262,6 +262,7 @@
         function closePlayer() {
             const video = document.getElementById('videoPlayer');
             video.pause();
+            video.currentTime = 0;
             video.src = '';
             if (hlsInstance) {
                 hlsInstance.destroy();
@@ -284,7 +285,7 @@
             hud.classList.remove('hidden');
             hudTimeout = setTimeout(() => {
                 hud.classList.add('hidden');
-            }, 4000);
+            }, 5000);
         }
 
         function toggleNativeFullscreen() {
