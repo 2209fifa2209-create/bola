@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>FREE IPTV</title>
+    <title>Free IPTV</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.12/hls.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -62,6 +62,7 @@
         .hud-btn { background: rgba(255,255,255,0.25); border: none; color: #fff; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; }
         .hud-btn:hover { background: rgba(255,255,255,0.4); }
         .hud-btn.danger { background: #e74c3c; }
+        .hud-btn.warning { background: #e67e22; color: #fff; }
         .hud-btn.primary { background: #27ae60; }
     </style>
 </head>
@@ -69,7 +70,7 @@
     <div id="app">
         <!-- Top Bar -->
         <div class="top-bar">
-            <div class="top-title">ชื่อ : [ FREE IPTV ]</div>
+            <div class="top-title">ชื่อ : [ Free Iptv ]</div>
             <div class="top-menu">
                 <span onclick="alert('กำลังใช้งาน TV ™')">📺 TV ™</span>
                 <span onclick="alert('หมวด ดูหนัง ™')">🎬 ดูหนัง ™</span>
@@ -115,8 +116,11 @@
             <!-- HUD Overlay Controls -->
             <div class="player-hud" id="playerHud" onclick="event.stopPropagation()">
                 <div class="hud-top">
-                    <span id="currentPlayingTitle" style="font-weight: bold; color: #f1c40f; font-size: 14px;">กำลังเล่น: ช่องทีวี</span>
-                    <button class="hud-btn danger" onclick="closePlayer()">✕ ปิด / กลับหน้ารายการ</button>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button class="hud-btn warning" onclick="closePlayer()">◀ กลับ</button>
+                        <span id="currentPlayingTitle" style="font-weight: bold; color: #f1c40f; font-size: 14px;">กำลังเล่น: ช่องทีวี</span>
+                    </div>
+                    <button class="hud-btn danger" onclick="closePlayer()">✕ ปิด</button>
                 </div>
                 <div class="hud-bottom">
                     <button class="hud-btn" onclick="toggleNativeFullscreen()">📺 เต็มจอ iOS (Native)</button>
@@ -336,7 +340,7 @@
             }
         }
 
-        // ระบบตรวจจับการปัดนิ้วย้อนกลับ (Swipe to Go Back) บนมือถือ/แท็บเล็ต
+        // ระบบตรวจจับการปัดนิ้วย้อนกลับ (Swipe to Go Back)
         let touchStartX = 0;
         let touchStartY = 0;
         const playerOverlay = document.getElementById('player-overlay');
@@ -353,7 +357,6 @@
             let diffX = touchEndX - touchStartX;
             let diffY = Math.abs(touchEndY - touchStartY);
 
-            // เงื่อนไข: ปัดจากซ้ายไปขวา (Swipe Right เกิน 80 พิกเซล) และเป็นการปัดในแนวราบ (diffY น้อยกว่า 100)
             if (touchStartX < 80 && diffX > 80 && diffY < 100) {
                 closePlayer();
             }
