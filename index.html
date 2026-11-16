@@ -82,7 +82,7 @@
 
         <!-- Link Bar -->
         <div class="link-bar">
-            <input type="text" id="customStreamUrl" placeholder="วางลิงก์ทุกไฟล์ (.m3u8, .mp4, .mkv, .ts, .mov...) ที่นี่...">
+            <input type="text" id="customStreamUrl" placeholder="วางลิงก์ http:// หรือ https:// ทุกไฟล์ที่นี่...">
             <button class="primary" onclick="playCustomLink()">▶ เล่นลิงก์เต็มจอ</button>
             <button class="secondary" onclick="addM3UPlaylist()">📡 เพิ่ม M3U</button>
         </div>
@@ -118,7 +118,7 @@
                 <div class="hud-top">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <button class="hud-btn warning" onclick="closePlayer()">◀ กลับ</button>
-                        <span id="currentPlayingTitle" style="font-weight: bold; color: #f1c40f; font-size: 14px;">กำลังเล่น: สื่อวิดีโอ</span>
+                        <span id="currentPlayingTitle" style="font-weight: bold; color: #f1c40f; font-size: 14px;">กำลังเล่น: สตรีม HTTP</span>
                     </div>
                     <button class="hud-btn danger" onclick="closePlayer()">✕ ปิด</button>
                 </div>
@@ -135,9 +135,9 @@
     <script>
         let channelsData = {
             digital: [
-                { name: 'CH3', url: 'https://edge-2.m-fixer.net:8092/stream/ais/3hd/master.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/2/2f/Channel_3_Thailand_Logo.svg/200px-Channel_3_Thailand_Logo.svg.png' },
-                { name: 'CH3™(MP4 File)', url: 'http://119.10.136.162:8080/live/dootv/dootv/8.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/2/2f/Channel_3_Thailand_Logo.svg/200px-Channel_3_Thailand_Logo.svg.png' },
-                { name: 'CH5™(3BB)', url: 'https://thaipbs-live.cdn.byteark.com/live/playlist.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/2/22/Logo_TV5_Thailand.png' },
+                { name: 'CH3', url: 'http://119.10.136.162:8080/live/dootv/dootv/54.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/2/2f/Channel_3_Thailand_Logo.svg/200px-Channel_3_Thailand_Logo.svg.png' },
+                { name: 'CH3', url: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/2/2f/Channel_3_Thailand_Logo.svg/200px-Channel_3_Thailand_Logo.svg.png' },
+                { name: 'CH5™(3BB)', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/2/22/Logo_TV5_Thailand.png' },
                 { name: 'CH7™(thaimomo-MX)', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/3/36/Channel_7_Thailand_%282003-2561%29.svg/200px-Channel_7_Thailand_%282003-2561%29.svg.png' },
                 { name: 'MCOT™(3BB)', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/a/ab/MCOT_HD_Logo.svg/200px-MCOT_HD_Logo.svg.png' },
                 { name: 'NBT ภาคใต้', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/8/8c/NBT2HD_Logo.png' },
@@ -222,10 +222,10 @@
         function playCustomLink() {
             const url = document.getElementById('customStreamUrl').value.trim();
             if (!url) {
-                alert('กรุณากรอกลิงก์สตรีมก่อนครับ');
+                alert('กรุณากรอกลิงก์ http:// หรือ https:// ก่อนครับ');
                 return;
             }
-            openPlayer(url, 'Custom Media Link');
+            openPlayer(url, 'Custom HTTP Stream');
         }
 
         function openPlayer(url, title) {
@@ -240,7 +240,6 @@
                 hlsInstance = null;
             }
 
-            // รองรับการเล่นทุกไฟล์ทุกลิงก์ (.m3u8, .mp4, .mkv, .ts, .mov, ฯลฯ)
             if (url.includes('.m3u8') || url.includes('m3u')) {
                 if (isIOS || video.canPlayType('application/vnd.apple.mpegurl')) {
                     video.src = url;
@@ -327,7 +326,7 @@
         }
 
         function promptChangeLink() {
-            const newUrl = prompt('แก้ไขลิงก์สตรีมของช่องนี้:');
+            const newUrl = prompt('แก้ไขลิงก์สตรีม (http:// หรือ https://) ของช่องนี้:');
             if (newUrl) {
                 channelsData[currentCategory][currentChannelIndex].url = newUrl;
                 openPlayer(newUrl, channelsData[currentCategory][currentChannelIndex].name);
