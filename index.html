@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Free IPTV</title>
+    <title>FREE IPTV</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.12/hls.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -70,7 +70,7 @@
     <div id="app">
         <!-- Top Bar -->
         <div class="top-bar">
-            <div class="top-title">ชื่อ : [ Free Iptv ]</div>
+            <div class="top-title">ชื่อ : [ FREE IPTV ]</div>
             <div class="top-menu">
                 <span onclick="alert('กำลังใช้งาน TV ™')">📺 TV ™</span>
                 <span onclick="alert('หมวด ดูหนัง ™')">🎬 ดูหนัง ™</span>
@@ -82,7 +82,7 @@
 
         <!-- Link Bar -->
         <div class="link-bar">
-            <input type="text" id="customStreamUrl" placeholder="วางลิงก์สตรีม .m3u8 หรือ .mp4 ที่นี่...">
+            <input type="text" id="customStreamUrl" placeholder="วางลิงก์ทุกไฟล์ (.m3u8, .mp4, .mkv, .ts, .mov...) ที่นี่...">
             <button class="primary" onclick="playCustomLink()">▶ เล่นลิงก์เต็มจอ</button>
             <button class="secondary" onclick="addM3UPlaylist()">📡 เพิ่ม M3U</button>
         </div>
@@ -118,7 +118,7 @@
                 <div class="hud-top">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <button class="hud-btn warning" onclick="closePlayer()">◀ กลับ</button>
-                        <span id="currentPlayingTitle" style="font-weight: bold; color: #f1c40f; font-size: 14px;">กำลังเล่น: ช่องทีวี</span>
+                        <span id="currentPlayingTitle" style="font-weight: bold; color: #f1c40f; font-size: 14px;">กำลังเล่น: สื่อวิดีโอ</span>
                     </div>
                     <button class="hud-btn danger" onclick="closePlayer()">✕ ปิด</button>
                 </div>
@@ -135,8 +135,8 @@
     <script>
         let channelsData = {
             digital: [
-                { name: 'CH3™(3BB)', url: 'http://3bb.engatetv.com:25461/hstn/line/4', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/2/2f/Channel_3_Thailand_Logo.svg/200px-Channel_3_Thailand_Logo.svg.png' },
-                { name: 'CH3™(thaimomo-MX-2-2)', url: 'https://thaipbs-live.cdn.byteark.com/live/playlist.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/2/2f/Channel_3_Thailand_Logo.svg/200px-Channel_3_Thailand_Logo.svg.png' },
+                { name: 'CH3™(3BB)', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/2/2f/Channel_3_Thailand_Logo.svg/200px-Channel_3_Thailand_Logo.svg.png' },
+                { name: 'CH3™(MP4 File)', url: 'https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/2/2f/Channel_3_Thailand_Logo.svg/200px-Channel_3_Thailand_Logo.svg.png' },
                 { name: 'CH5™(3BB)', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/2/22/Logo_TV5_Thailand.png' },
                 { name: 'CH7™(thaimomo-MX)', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/3/36/Channel_7_Thailand_%282003-2561%29.svg/200px-Channel_7_Thailand_%282003-2561%29.svg.png' },
                 { name: 'MCOT™(3BB)', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/a/ab/MCOT_HD_Logo.svg/200px-MCOT_HD_Logo.svg.png' },
@@ -225,7 +225,7 @@
                 alert('กรุณากรอกลิงก์สตรีมก่อนครับ');
                 return;
             }
-            openPlayer(url, 'Custom Stream Link');
+            openPlayer(url, 'Custom Media Link');
         }
 
         function openPlayer(url, title) {
@@ -240,7 +240,8 @@
                 hlsInstance = null;
             }
 
-            if (url.includes('.m3u8')) {
+            // รองรับการเล่นทุกไฟล์ทุกลิงก์ (.m3u8, .mp4, .mkv, .ts, .mov, ฯลฯ)
+            if (url.includes('.m3u8') || url.includes('m3u')) {
                 if (isIOS || video.canPlayType('application/vnd.apple.mpegurl')) {
                     video.src = url;
                     video.play().catch(e => console.log("Autoplay blocked:", e));
@@ -340,7 +341,7 @@
             }
         }
 
-        // ระบบตรวจจับการปัดนิ้วย้อนกลับ (Swipe to Go Back)
+        // ระบบปัดหน้าจอเพื่อย้อนกลับ (Swipe to Go Back)
         let touchStartX = 0;
         let touchStartY = 0;
         const playerOverlay = document.getElementById('player-overlay');
