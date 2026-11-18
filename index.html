@@ -2,369 +2,370 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>FREE IPTV</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.12/hls.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>บ้านทีวี - BaanTV Sports & Entertainment</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- HLS.js สำหรับสตรีม m3u8 ทั้ง http และ https -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <!-- FontAwesome ไอคอน -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
-        body, html { width: 100%; height: 100%; background-color: #121212; color: #fff; overflow: hidden; }
-        
-        /* App Layout */
-        #app { display: flex; flex-direction: column; width: 100vw; height: 100vh; height: 100dvh; }
-        
-        /* Top Bar */
-        .top-bar { background-color: #1a1a1a; padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #333; font-size: 14px; flex-wrap: wrap; gap: 8px; }
-        .top-title { color: #f1c40f; font-weight: bold; }
-        .top-menu { display: flex; gap: 12px; align-items: center; font-size: 13px; color: #ccc; }
-        .top-menu span { cursor: pointer; }
-        .top-menu span:hover { color: #fff; }
-        
-        /* Custom Link Bar */
-        .link-bar { background-color: #222; padding: 6px 15px; display: flex; gap: 8px; align-items: center; border-bottom: 1px solid #333; }
-        .link-bar input { flex: 1; padding: 6px 10px; background: #333; border: 1px solid #444; color: #fff; border-radius: 4px; font-size: 13px; }
-        .link-bar button { padding: 6px 12px; background: #e74c3c; border: none; color: #fff; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; white-space: nowrap; }
-        .link-bar button.secondary { background: #3498db; }
-
-        /* Main Body */
-        .main-body { display: flex; flex: 1; overflow: hidden; }
-        
-        /* Sidebar */
-        .sidebar { width: 180px; background-color: #181818; border-right: 1px solid #333; overflow-y: auto; flex-shrink: 0; }
-        .cat-item { padding: 12px 14px; font-size: 13px; border-bottom: 1px solid #222; cursor: pointer; color: #bbb; }
-        .cat-item:hover, .cat-item.active { background-color: #2a2a2a; color: #f1c40f; border-left: 4px solid #f1c40f; }
-
-        /* Content Grid */
-        .content { flex: 1; background-color: #ffffff; overflow-y: auto; padding: 10px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
-        .channel-card { background: #f9f9f9; border: 2px solid #3b5998; border-radius: 4px; padding: 6px; text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; transition: transform 0.1s; }
-        .channel-card:active { transform: scale(0.96); }
-        .channel-logo { width: 100%; height: 60px; background: #000; border-radius: 2px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; margin-bottom: 4px; }
-        .channel-logo img { width: 100%; height: 100%; object-fit: contain; }
-        .channel-name { font-size: 11px; color: #333; word-break: break-all; line-height: 1.2; max-height: 28px; overflow: hidden; font-weight: bold; }
-
-        /* Fullscreen Player Overlay */
-        #player-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; background: #000; z-index: 99999; display: none; flex-direction: column; }
-        #player-overlay.active { display: flex; }
-        
-        .video-container { flex: 1; position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #000; }
-        video { width: 100%; height: 100%; object-fit: contain; }
-        video.fit { object-fit: contain; }
-        video.fill { object-fit: cover; }
-        video.stretch { object-fit: fill; }
-
-        /* HUD Controls */
-        .player-hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: env(safe-area-inset-top, 10px) env(safe-area-inset-right, 10px) env(safe-area-inset-bottom, 10px) env(safe-area-inset-left, 10px); transition: opacity 0.3s; opacity: 1; z-index: 100000; }
-        .player-hud.hidden { opacity: 0; pointer-events: none; }
-        .hud-top, .hud-bottom { pointer-events: auto; background: rgba(0, 0, 0, 0.85); padding: 12px 15px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; backdrop-filter: blur(5px); }
-        .hud-top { border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .hud-bottom { border-top: 1px solid rgba(255,255,255,0.1); }
-        
-        .hud-btn { background: rgba(255,255,255,0.25); border: none; color: #fff; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; }
-        .hud-btn:hover { background: rgba(255,255,255,0.4); }
-        .hud-btn.danger { background: #e74c3c; }
-        .hud-btn.warning { background: #e67e22; color: #fff; }
-        .hud-btn.primary { background: #27ae60; }
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Prompt', sans-serif; background-color: #0b0f19; color: #f3f4f6; }
+        .neon-glow { box-shadow: 0 0 20px rgba(220, 38, 38, 0.4); }
+        .channel-card:active { transform: scale(0.97); }
+        /* สไตล์โหมดเต็มหน้าจอจำลอง (Pseudo-Fullscreen สำหรับมือถือหรือเบราว์เซอร์ที่จำกัด) */
+        .pseudo-fullscreen {
+            position: fixed !important;
+            top: 0 !important; left: 0 !important;
+            width: 100vw !important; height: 100vh !important;
+            z-index: 99999 !important;
+            background: #000 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+        }
+        .pseudo-fullscreen video {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain !important;
+        }
     </style>
 </head>
-<body>
-    <div id="app">
-        <!-- Top Bar -->
-        <div class="top-bar">
-            <div class="top-title">ชื่อ : [ FREE IPTV ]</div>
-            <div class="top-menu">
-                <span onclick="alert('กำลังใช้งาน TV ™')">📺 TV ™</span>
-                <span onclick="alert('หมวด ดูหนัง ™')">🎬 ดูหนัง ™</span>
-                <span onclick="alert('หมวด ดูซีรี่ย์ ™')">🍿 ดูซีรี่ย์ ™</span>
-                <span onclick="alert('หมวด ดูสารคดี ™')">🌍 ดูสารคดี ™</span>
-                <span onclick="if(confirm('ต้องการออกจากแอปใช่หรือไม่?')) window.close();" style="color:#e74c3c;">🚪 ออก</span>
-            </div>
-        </div>
+<body class="min-h-screen flex flex-col">
 
-        <!-- Link Bar -->
-        <div class="link-bar">
-            <input type="text" id="customStreamUrl" placeholder="วางลิงก์ http:// หรือ https:// ทุกไฟล์ที่นี่...">
-            <button class="primary" onclick="playCustomLink()">▶ เล่นลิงก์เต็มจอ</button>
-            <button class="secondary" onclick="addM3UPlaylist()">📡 เพิ่ม M3U</button>
-        </div>
-
-        <!-- Main Body -->
-        <div class="main-body">
-            <!-- Sidebar Categories -->
-            <div class="sidebar" id="sidebar">
-                <div class="cat-item active" onclick="filterCat('digital', this)">ดิจิตอลทีวี ™</div>
-                <div class="cat-item" onclick="filterCat('cartoon', this)">การ์ตูน ™</div>
-                <div class="cat-item" onclick="filterCat('thaisport', this)">กีฬาไทย ™</div>
-                <div class="cat-item" onclick="filterCat('globalsport', this)">กีฬาต่างประเทศ ™</div>
-                <div class="cat-item" onclick="filterCat('movie', this)">ภาพยนตร์ ™</div>
-                <div class="cat-item" onclick="filterCat('docu', this)">สารคดี ™</div>
-                <div class="cat-item" onclick="filterCat('news', this)">NEWS ™</div>
-                <div class="cat-item" onclick="filterCat('test', this)">Test ™</div>
-            </div>
-
-            <!-- Content Channels Grid -->
-            <div class="content">
-                <div class="grid" id="channelGrid"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Fullscreen Video Player Overlay -->
-    <div id="player-overlay">
-        <div class="video-container" id="videoContainer" onclick="toggleHud()">
-            <video id="videoPlayer" playsinline webkit-playsinline x-webkit-airplay="allow" controls></video>
-            
-            <!-- HUD Overlay Controls -->
-            <div class="player-hud" id="playerHud" onclick="event.stopPropagation()">
-                <div class="hud-top">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <button class="hud-btn warning" onclick="closePlayer()">◀ กลับ</button>
-                        <span id="currentPlayingTitle" style="font-weight: bold; color: #f1c40f; font-size: 14px;">กำลังเล่น: สตรีม HTTP</span>
-                    </div>
-                    <button class="hud-btn danger" onclick="closePlayer()">✕ ปิด</button>
+    <!-- ส่วนหัวแอป -->
+    <header class="bg-gradient-to-r from-gray-900 via-blue-950 to-gray-900 border-b border-red-600/30 sticky top-0 z-40 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-tr from-red-600 to-amber-500 p-2.5 rounded-xl shadow-md neon-glow">
+                    <i class="fa-solid fa-crown text-white text-xl"></i>
                 </div>
-                <div class="hud-bottom">
-                    <button class="hud-btn" onclick="toggleNativeFullscreen()">📺 เต็มจอ iOS (Native)</button>
-                    <button class="hud-btn" onclick="rotatePlayer()">🔄 หมุนจอ 90°</button>
-                    <button class="hud-btn" onclick="changeAspectRatio()">📐 สัดส่วน (Fit/Fill)</button>
-                    <button class="hud-btn primary" onclick="promptChangeLink()">✏️ แก้ไขลิงก์ช่องนี้</button>
+                <div>
+                    <h1 class="text-xl font-bold tracking-wide text-white flex items-center gap-2">
+                        บ้านทีวี <span class="text-xs bg-red-600 text-white px-2 py-0.5 rounded-full font-normal">HD / Live</span>
+                    </h1>
+                    <p class="text-xs text-gray-400">รวมความบันเทิงและกีฬาครบวงจร (HTTP/HTTPS)</p>
                 </div>
             </div>
+            <div class="flex items-center gap-2">
+                <button onclick="openAddChannelModal()" class="bg-red-600 hover:bg-red-700 text-white px-3.5 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5 shadow-md transition">
+                    <i class="fa-solid fa-plus"></i> เพิ่มช่อง
+                </button>
+            </div>
         </div>
-    </div>
+    </header>
 
-    <script>
-        let channelsData = {
-            digital: [
-                { name: 'CH3', url: 'http://119.10.136.162:8080/live/dootv/dootv/54.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/2/2f/Channel_3_Thailand_Logo.svg/200px-Channel_3_Thailand_Logo.svg.png' },
-                { name: 'CH3', url: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/2/2f/Channel_3_Thailand_Logo.svg/200px-Channel_3_Thailand_Logo.svg.png' },
-                { name: 'CH5™(3BB)', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/2/22/Logo_TV5_Thailand.png' },
-                { name: 'CH7™(thaimomo-MX)', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/3/36/Channel_7_Thailand_%282003-2561%29.svg/200px-Channel_7_Thailand_%282003-2561%29.svg.png' },
-                { name: 'MCOT™(3BB)', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/a/ab/MCOT_HD_Logo.svg/200px-MCOT_HD_Logo.svg.png' },
-                { name: 'NBT ภาคใต้', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/8/8c/NBT2HD_Logo.png' },
-                { name: 'Thai PBS™', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/4/45/Thai_PBS_Logo_%282018%29.svg/200px-Thai_PBS_Logo_%282018%29.svg.png' },
-                { name: 'Nation 22', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/1/1a/NationTV22_Logo.svg/200px-NationTV22_Logo.svg.png' },
-                { name: 'WorkPoint™', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/2/29/Workpoint_TV_Logo.svg/200px-Workpoint_TV_Logo.svg.png' },
-                { name: 'Thairath™(3BB)', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/b/b2/Thairath_TV_HD_Logo.svg/200px-Thairath_TV_HD_Logo.svg.png' },
-                { name: 'Amarin TV™', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/6/6c/Amarin_TV_Logo.svg/200px-Amarin_TV_Logo.svg.png' },
-                { name: 'PPTV™', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/8/84/PPTV_HD_36_Logo.svg/200px-PPTV_HD_36_Logo.svg.png' },
-                { name: 'True4U™', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/d/d4/True4u_Logo_2020.svg/200px-True4u_Logo_2020.svg.png' },
-                { name: 'GMM25™', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/3/30/GMM25_Logo.svg/200px-GMM25_Logo.svg.png' },
-                { name: 'Mono29™', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/b/b8/Mono29_Logo.svg/200px-Mono29_Logo.svg.png' },
-                { name: 'One31™', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: 'https://upload.wikimedia.org/wikipedia/th/thumb/9/91/One_31_Logo.svg/200px-One_31_Logo.svg.png' }
-            ],
-            cartoon: [
-                { name: 'Cartoon Network', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: '' },
-                { name: 'Disney Channel', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: '' }
-            ],
-            thaisport: [
-                { name: 'T-Sport 7', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: '' }
-            ],
-            globalsport: [
-                { name: 'BeIN Sports 1', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: '' }
-            ],
-            movie: [{ name: 'Mono Film', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: '' }],
-            docu: [{ name: 'Animal Planet', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: '' }],
-            news: [{ name: 'Top News', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: '' }],
-            test: [{ name: 'Test Stream 1', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', logo: '' }]
-        };
+    <!-- เนื้อหาหลัก -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-3 md:p-6 space-y-6">
 
-        let currentCategory = 'digital';
-        let currentChannelIndex = 0;
-        let hlsInstance = null;
-        let aspectRatioMode = 0;
-        let rotationAngle = 0;
-        let hudTimeout = null;
+        <!-- ส่วนเครื่องเล่นวิดีโอหลัก -->
+        <div id="player-container-wrapper" class="bg-black rounded-2xl overflow-hidden shadow-2xl border border-gray-800 relative group">
+            <!-- แถบควบคุมมุมขวาบนในจอเล่น -->
+            <div class="absolute top-3 right-3 z-30 flex items-center gap-2 opacity-90 group-hover:opacity-100 transition">
+                <button onclick="rotateVideo()" title="หมุนจอ 90 องศา" class="bg-black/70 hover:bg-black text-white px-3 py-1.5 rounded-lg text-xs backdrop-blur border border-white/20 flex items-center gap-1 shadow">
+                    <i class="fa-solid fa-rotate"></i> หมุนจอ 90°
+                </button>
+                <button onclick="toggleFullscreen()" title="ขยายเต็มจอ" class="bg-black/70 hover:bg-black text-white px-3 py-1.5 rounded-lg text-xs backdrop-blur border border-white/20 flex items-center gap-1 shadow">
+                    <i class="fa-solid fa-expand"></i> เต็มจอ
+                </button>
+            </div>
 
-        function renderChannels(category) {
-            currentCategory = category;
-            const grid = document.getElementById('channelGrid');
-            grid.innerHTML = '';
-            const list = channelsData[category] || [];
-            
-            list.forEach((ch, idx) => {
-                const card = document.createElement('div');
-                card.className = 'channel-card';
-                card.onclick = () => playChannel(idx);
+            <!-- กล่องวิดีโอ -->
+            <div id="video-box" class="relative w-full aspect-video bg-black flex items-center justify-center">
+                <video id="videoPlayer" class="w-full h-full object-contain" playsinline controls autoplay></video>
                 
-                const logoDiv = document.createElement('div');
-                logoDiv.className = 'channel-logo';
-                if (ch.logo) {
-                    const img = document.createElement('img');
-                    img.src = ch.logo;
-                    img.onerror = () => { img.remove(); logoDiv.innerText = '📺'; };
-                    logoDiv.appendChild(img);
-                } else {
-                    logoDiv.innerText = '📺';
-                }
+                <!-- ปุ่มแตะเพื่อเปิดเสียงกรณี Autoplay บล็อก -->
+                <div id="unmute-overlay" class="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center cursor-pointer hidden z-20" onclick="forceUnmute()">
+                    <div class="bg-red-600 text-white p-4 rounded-full shadow-2xl mb-2 animate-bounce">
+                        <i class="fa-solid fa-volume-high text-2xl"></i>
+                    </div>
+                    <span class="text-white font-medium text-sm">แตะเพื่อเปิดเสียง / เล่นต่อ</span>
+                </div>
 
-                const nameDiv = document.createElement('div');
-                nameDiv.className = 'channel-name';
-                nameDiv.innerText = ch.name;
+                <!-- ป้ายแสดงชื่อช่องกำลังเล่น -->
+                <div class="absolute bottom-3 left-3 bg-black/70 backdrop-blur px-3 py-1.5 rounded-lg border border-white/10 flex items-center gap-2 z-20 pointer-events-none">
+                    <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+                    <span id="current-playing-title" class="text-xs font-medium text-white">เลือกช่องด้านล่างเพื่อรับชม</span>
+                </div>
+            </div>
+        </div>
 
-                card.appendChild(logoDiv);
-                card.appendChild(nameDiv);
+        <!-- หมวดหมู่ช่องรายการ -->
+        <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-none" id="category-tabs">
+            <button onclick="filterCategory('all')" class="cat-btn px-4 py-2 rounded-xl text-xs font-medium bg-red-600 text-white whitespace-nowrap shadow transition">ทั้งหมด</button>
+            <button onclick="filterCategory('sport')" class="cat-btn px-4 py-2 rounded-xl text-xs font-medium bg-gray-900 border border-gray-800 text-gray-300 hover:text-white whitespace-nowrap transition">⚽ กีฬา / บอลสด</button>
+            <button onclick="filterCategory('tv')" class="cat-btn px-4 py-2 rounded-xl text-xs font-medium bg-gray-900 border border-gray-800 text-gray-300 hover:text-white whitespace-nowrap transition">📺 ช่องทีวี</button>
+            <button onclick="filterCategory('movie')" class="cat-btn px-4 py-2 rounded-xl text-xs font-medium bg-gray-900 border border-gray-800 text-gray-300 hover:text-white whitespace-nowrap transition">🎬 หนัง</button>
+            <button onclick="filterCategory('series')" class="cat-btn px-4 py-2 rounded-xl text-xs font-medium bg-gray-900 border border-gray-800 text-gray-300 hover:text-white whitespace-nowrap transition">🎞️ ซีรีย์</button>
+            <button onclick="filterCategory('cartoon')" class="cat-btn px-4 py-2 rounded-xl text-xs font-medium bg-gray-900 border border-gray-800 text-gray-300 hover:text-white whitespace-nowrap transition">👶 การ์ตูน</button>
+            <button onclick="filterCategory('variety')" class="cat-btn px-4 py-2 rounded-xl text-xs font-medium bg-gray-900 border border-gray-800 text-gray-300 hover:text-white whitespace-nowrap transition">🎵 วาไรตี้</button>
+        </div>
+
+        <!-- รายการช่อง (Grid) -->
+        <div>
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-list text-red-500"></i> รายการช่องสตรีมมิ่ง (HTTP & HTTPS)
+                </h2>
+                <span id="channel-count" class="text-xs text-gray-500">0 ช่อง</span>
+            </div>
+            <div id="channels-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                <!-- ข้อมูลช่องจะถูกเรนเดอร์ด้วย JavaScript -->
+            </div>
+        </div>
+    </main>
+
+    <!-- โมเดลเพิ่ม/แก้ไขช่อง -->
+    <div id="channel-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-gray-900 border border-gray-800 w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 id="modal-title" class="text-base font-bold text-white">เพิ่มช่องสตรีมมิ่งใหม่</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <input type="hidden" id="edit-index" value="-1">
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">ชื่อช่อง</label>
+                    <input type="text" id="channel-name" placeholder="เช่น บอลสด พรีเมียร์ลีก" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-red-600">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">หมวดหมู่</label>
+                    <select id="channel-cat" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-red-600">
+                        <option value="sport">⚽ กีฬา / บอลสด</option>
+                        <option value="tv">📺 ช่องทีวี</option>
+                        <option value="movie">🎬 หนัง</option>
+                        <option value="series">🎞️ ซีรีย์</option>
+                        <option value="cartoon">👶 การ์ตูน</option>
+                        <option value="variety">🎵 วาไรตี้</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">ลิงก์สตรีม (รองรับ https:// หรือ http:// และ .m3u8 / .mp4)</label>
+                    <input type="text" id="channel-url" placeholder="https:// หรือ http://..." class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-red-600">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">ลิงก์รูปโลโก้ (ถ้ามี)</label>
+                    <input type="text" id="channel-logo" placeholder="https://..." class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-red-600">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeModal()" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-xl text-xs transition">ยกเลิก</button>
+                <button onclick="saveChannel()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-xs font-medium transition">บันทึก</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        // รายการช่องเริ่มต้น (รองรับทั้ง http และ https)
+        let channels = JSON.parse(localStorage.getItem('baantv_channels')) || [
+            { name: "บอลสด ช่อง 1 (HTTPS)", cat: "sport", url: "https://test-streams.mux.dev/x36hls/url_6/193039.m3u8", logo: "https://img.icons8.com/color/96/football--v1.png" },
+            { name: "บอลสด ช่อง 2 (HTTP Test)", cat: "sport", url: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4", logo: "https://img.icons8.com/color/96/soccer-ball.png" },
+            { name: "ช่องทีวี 3 HD", cat: "tv", url: "https://cph-p2s-kfi.akamaized.net/hls/live/2000341/test/master.m3u8", logo: "https://img.icons8.com/color/96/tv.png" },
+            { name: "ช่องหนังยอดฮิต", cat: "movie", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4", logo: "https://img.icons8.com/color/96/clapperboard.png" }
+        ];
+
+        let currentCategory = 'all';
+        let hlsInstance = null;
+        let isRotated = false;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderChannels();
+            if (channels.length > 0) {
+                playStream(channels[0].url, channels[0].name);
+            }
+        });
+
+        function renderChannels() {
+            const grid = document.getElementById('channels-grid');
+            grid.innerHTML = '';
+            
+            const filtered = currentCategory === 'all' 
+                ? channels 
+                : channels.filter(c => c.cat === currentCategory);
+
+            document.getElementById('channel-count').innerText = `${filtered.length} ช่อง`;
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-10 text-gray-500 text-xs">ไม่พบช่องรายการในหมวดหมู่นี้</div>`;
+                return;
+            }
+
+            filtered.forEach((ch, idx) => {
+                const originalIndex = channels.indexOf(ch);
+                const card = document.createElement('div');
+                card.className = `channel-card bg-gray-900 border border-gray-800 hover:border-red-600/50 rounded-2xl p-3 flex flex-col items-center justify-between cursor-pointer transition shadow hover:shadow-lg relative group`;
+                
+                card.innerHTML = `
+                    <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition flex gap-1 z-10">
+                        <button onclick="event.stopPropagation(); editChannel(${originalIndex})" class="bg-blue-600/80 hover:bg-blue-600 text-white w-6 h-6 rounded-lg text-xs flex items-center justify-center"><i class="fa-solid fa-pen text-[10px]"></i></button>
+                        <button onclick="event.stopPropagation(); deleteChannel(${originalIndex})" class="bg-red-600/80 hover:bg-red-600 text-white w-6 h-6 rounded-lg text-xs flex items-center justify-center"><i class="fa-solid fa-trash text-[10px]"></i></button>
+                    </div>
+                    <div class="w-14 h-14 bg-gray-950 rounded-xl p-2 mb-2 flex items-center justify-center border border-gray-800 shadow-inner">
+                        <img src="${ch.logo || 'https://img.icons8.com/color/96/tv.png'}" alt="${ch.name}" class="w-full h-full object-contain" onerror="this.src='https://img.icons8.com/color/96/tv.png'">
+                    </div>
+                    <span class="text-xs font-medium text-center text-gray-200 line-clamp-2 mb-3">${ch.name}</span>
+                    <button onclick="playStream('${ch.url}', '${ch.name}')" class="w-full bg-red-600 hover:bg-red-700 text-white py-1.5 rounded-xl text-xs font-medium transition flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-play text-[10px]"></i> รับชม
+                    </button>
+                `;
                 grid.appendChild(card);
             });
         }
 
-        function filterCat(cat, el) {
-            document.querySelectorAll('.cat-item').forEach(i => i.classList.remove('active'));
-            el.classList.add('active');
-            renderChannels(cat);
+        function filterCategory(cat) {
+            currentCategory = cat;
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.classList.remove('bg-red-600', 'text-white');
+                btn.classList.add('bg-gray-900', 'border', 'border-gray-800', 'text-gray-300');
+            });
+            event.currentTarget.classList.remove('bg-gray-900', 'border', 'border-gray-800', 'text-gray-300');
+            event.currentTarget.classList.add('bg-red-600', 'text-white');
+            renderChannels();
         }
 
-        function playChannel(index) {
-            currentChannelIndex = index;
-            const ch = channelsData[currentCategory][index];
-            openPlayer(ch.url, ch.name);
-        }
-
-        function playCustomLink() {
-            const url = document.getElementById('customStreamUrl').value.trim();
-            if (!url) {
-                alert('กรุณากรอกลิงก์ http:// หรือ https:// ก่อนครับ');
-                return;
-            }
-            openPlayer(url, 'Custom HTTP Stream');
-        }
-
-        function openPlayer(url, title) {
-            document.getElementById('currentPlayingTitle').innerText = 'กำลังเล่น: ' + title;
-            document.getElementById('player-overlay').classList.add('active');
-            
+        function playStream(url, title) {
             const video = document.getElementById('videoPlayer');
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            document.getElementById('current-playing-title').innerText = title;
+            document.getElementById('unmute-overlay').classList.add('hidden');
 
             if (hlsInstance) {
                 hlsInstance.destroy();
                 hlsInstance = null;
             }
 
-            if (url.includes('.m3u8') || url.includes('m3u')) {
-                if (isIOS || video.canPlayType('application/vnd.apple.mpegurl')) {
-                    video.src = url;
-                    video.play().catch(e => console.log("Autoplay blocked:", e));
-                } else if (Hls.isSupported()) {
+            // จัดการลิงก์ http หากหน้าเว็บเป็น https (ระบบแปลงหรือลองเล่นอัตโนมัติ)
+            let playUrl = url.trim();
+
+            if (playUrl.includes('.m3u8') || playUrl.includes('m3u')) {
+                if (Hls.isSupported()) {
                     hlsInstance = new Hls();
-                    hlsInstance.loadSource(url);
+                    hlsInstance.loadSource(playUrl);
                     hlsInstance.attachMedia(video);
                     hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
-                        video.play().catch(e => console.log("Autoplay blocked:", e));
+                        video.play().catch(() => showUnmuteOverlay());
                     });
-                } else {
-                    video.src = url;
-                    video.play().catch(e => console.log("Autoplay blocked:", e));
+                    hlsInstance.on(Hls.Events.ERROR, (event, data) => {
+                        if (data.fatal) {
+                            console.warn("HLS Error, trying direct play...");
+                        }
+                    });
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    video.src = playUrl;
+                    video.addEventListener('loadedmetadata', () => {
+                        video.play().catch(() => showUnmuteOverlay());
+                    });
                 }
             } else {
-                video.src = url;
-                video.play().catch(e => console.log("Autoplay blocked:", e));
+                video.src = playUrl;
+                video.load();
+                video.play().catch(() => showUnmuteOverlay());
             }
-
-            resetHudTimer();
         }
 
-        function closePlayer() {
+        function showUnmuteOverlay() {
+            document.getElementById('unmute-overlay').classList.remove('hidden');
+        }
+
+        function forceUnmute() {
             const video = document.getElementById('videoPlayer');
-            video.pause();
-            video.currentTime = 0;
-            video.src = '';
-            if (hlsInstance) {
-                hlsInstance.destroy();
-                hlsInstance = null;
-            }
-            document.getElementById('player-overlay').classList.remove('active');
+            video.muted = false;
+            video.play();
+            document.getElementById('unmute-overlay').classList.add('hidden');
         }
 
-        function toggleHud() {
-            const hud = document.getElementById('playerHud');
-            hud.classList.toggle('hidden');
-            if (!hud.classList.contains('hidden')) {
-                resetHudTimer();
-            }
-        }
-
-        function resetHudTimer() {
-            clearTimeout(hudTimeout);
-            const hud = document.getElementById('playerHud');
-            hud.classList.remove('hidden');
-            hudTimeout = setTimeout(() => {
-                hud.classList.add('hidden');
-            }, 5000);
-        }
-
-        function toggleNativeFullscreen() {
-            const video = document.getElementById('videoPlayer');
-            if (video.webkitEnterFullscreen) {
-                video.webkitEnterFullscreen();
-            } else if (video.requestFullscreen) {
-                video.requestFullscreen();
-            }
-        }
-
-        function changeAspectRatio() {
-            const video = document.getElementById('videoPlayer');
-            aspectRatioMode = (aspectRatioMode + 1) % 3;
-            video.className = '';
-            if (aspectRatioMode === 1) {
-                video.classList.add('fill');
-                alert('สัดส่วน: เต็มพื้นที่จอ (Fill/Zoom)');
-            } else if (aspectRatioMode === 2) {
-                video.classList.add('stretch');
-                alert('สัดส่วน: ยืดเต็มจอ (Stretch)');
+        function toggleFullscreen() {
+            const wrapper = document.getElementById('video-box');
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                if (wrapper.requestFullscreen) {
+                    wrapper.requestFullscreen().catch(() => wrapper.classList.toggle('pseudo-fullscreen'));
+                } else if (wrapper.webkitRequestFullscreen) {
+                    wrapper.webkitRequestFullscreen();
+                } else {
+                    wrapper.classList.toggle('pseudo-fullscreen');
+                }
             } else {
-                video.classList.add('fit');
-                alert('สัดส่วน: พอดีจอ (Fit)');
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+                wrapper.classList.remove('pseudo-fullscreen');
             }
         }
 
-        function rotatePlayer() {
-            rotationAngle = (rotationAngle + 90) % 360;
-            const container = document.getElementById('videoContainer');
-            container.style.transform = `rotate(${rotationAngle}deg)`;
-            container.style.width = (rotationAngle === 90 || rotationAngle === 270) ? '100vh' : '100vw';
-            container.style.height = (rotationAngle === 90 || rotationAngle === 270) ? '100vw' : '100vh';
-        }
-
-        function promptChangeLink() {
-            const newUrl = prompt('แก้ไขลิงก์สตรีม (http:// หรือ https://) ของช่องนี้:');
-            if (newUrl) {
-                channelsData[currentCategory][currentChannelIndex].url = newUrl;
-                openPlayer(newUrl, channelsData[currentCategory][currentChannelIndex].name);
+        function rotateVideo() {
+            isRotated = !isRotated;
+            const videoBox = document.getElementById('video-box');
+            if (isRotated) {
+                videoBox.style.transform = "rotate(90deg)";
+                videoBox.style.width = "100vh";
+                videoBox.style.height = "100vw";
+            } else {
+                videoBox.style.transform = "none";
+                videoBox.style.width = "100%";
+                videoBox.style.height = "auto";
             }
         }
 
-        function addM3UPlaylist() {
-            const m3uText = prompt('วางเนื้อหาเพลย์ลิสต์ M3U หรือลิงก์ไฟล์ M3U ที่นี่:');
-            if (m3uText) {
-                alert('เพิ่มเพลย์ลิสต์สำเร็จ!');
-            }
+        function openAddChannelModal() {
+            document.getElementById('modal-title').innerText = "เพิ่มช่องสตรีมมิ่งใหม่";
+            document.getElementById('edit-index').value = "-1";
+            document.getElementById('channel-name').value = "";
+            document.getElementById('channel-url').value = "";
+            document.getElementById('channel-logo').value = "";
+            document.getElementById('channel-modal').classList.remove('hidden');
         }
 
-        // ระบบปัดหน้าจอเพื่อย้อนกลับ (Swipe to Go Back)
-        let touchStartX = 0;
-        let touchStartY = 0;
-        const playerOverlay = document.getElementById('player-overlay');
+        function editChannel(index) {
+            const ch = channels[index];
+            document.getElementById('modal-title').innerText = "แก้ไขข้อมูลช่อง";
+            document.getElementById('edit-index').value = index;
+            document.getElementById('channel-name').value = ch.name;
+            document.getElementById('channel-cat').value = ch.cat;
+            document.getElementById('channel-url').value = ch.url;
+            document.getElementById('channel-logo').value = ch.logo || "";
+            document.getElementById('channel-modal').classList.remove('hidden');
+        }
 
-        playerOverlay.addEventListener('touchstart', (e) => {
-            touchStartX = e.changedTouches[0].screenX;
-            touchStartY = e.changedTouches[0].screenY;
-        }, { passive: true });
+        function closeModal() {
+            document.getElementById('channel-modal').classList.add('hidden');
+        }
 
-        playerOverlay.addEventListener('touchend', (e) => {
-            let touchEndX = e.changedTouches[0].screenX;
-            let touchEndY = e.changedTouches[0].screenY;
-            
-            let diffX = touchEndX - touchStartX;
-            let diffY = Math.abs(touchEndY - touchStartY);
+        function saveChannel() {
+            const index = parseInt(document.getElementById('edit-index').value);
+            const name = document.getElementById('channel-name').value.trim();
+            const cat = document.getElementById('channel-cat').value;
+            const url = document.getElementById('channel-url').value.trim();
+            const logo = document.getElementById('channel-logo').value.trim();
 
-            if (touchStartX < 80 && diffX > 80 && diffY < 100) {
-                closePlayer();
+            if (!name || !url) {
+                alert("กรุณากรอกชื่อช่องและลิงก์สตรีมให้ครบถ้วน");
+                return;
             }
-        }, { passive: true });
 
-        window.onload = () => {
-            renderChannels('digital');
-        };
+            const newChannelData = { name, cat, url, logo };
+
+            if (index === -1) {
+                channels.push(newChannelData);
+            } else {
+                channels[index] = newChannelData;
+            }
+
+            localStorage.setItem('baantv_channels', JSON.stringify(channels));
+            closeModal();
+            renderChannels();
+            playStream(url, name);
+        }
+
+        function deleteChannel(index) {
+            if (confirm("คุณต้องการลบช่องนี้ใช่หรือไม่?")) {
+                channels.splice(index, 1);
+                localStorage.setItem('baantv_channels', JSON.stringify(channels));
+                renderChannels();
+            }
+        }
     </script>
 </body>
 </html>
