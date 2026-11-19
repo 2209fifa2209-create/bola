@@ -97,7 +97,7 @@
         <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-none" id="category-tabs">
             <button onclick="filterCategory('all')" class="cat-btn px-4 py-2 rounded-xl text-xs font-medium bg-red-600 text-white whitespace-nowrap shadow transition">ทั้งหมด</button>
             <button onclick="filterCategory('digital')" class="cat-btn px-4 py-2 rounded-xl text-xs font-medium bg-gray-900 border border-gray-800 text-gray-300 hover:text-white whitespace-nowrap transition">ดิจิตอล</button>
-            <button onclick="filterCategory('sport')" class="cat-btn px-4 py-2 rounded-xl text-xs font-medium bg-gray-900 border border-gray-800 text-gray-300 hover:text-white whitespace-nowrap transition">กีฬา / บอลสด</button>            
+            <button onclick="filterCategory('mono')" class="cat-btn px-4 py-2 rounded-xl text-xs font-medium bg-gray-900 border border-gray-800 text-gray-300 hover:text-white whitespace-nowrap transition">monomax</button>            
             <button onclick="filterCategory('movie')" class="cat-btn px-4 py-2 rounded-xl text-xs font-medium bg-gray-900 border border-gray-800 text-gray-300 hover:text-white whitespace-nowrap transition">หนัง</button>
             <button onclick="filterCategory('series')" class="cat-btn px-4 py-2 rounded-xl text-xs font-medium bg-gray-900 border border-gray-800 text-gray-300 hover:text-white whitespace-nowrap transition">ซีรีย์</button>
             <button onclick="filterCategory('cartoon')" class="cat-btn px-4 py-2 rounded-xl text-xs font-medium bg-gray-900 border border-gray-800 text-gray-300 hover:text-white whitespace-nowrap transition">การ์ตูน</button>
@@ -135,7 +135,7 @@
                     <label class="text-xs text-gray-400 mb-1 block">หมวดหมู่</label>
                     <select id="channel-cat" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-red-600">
                         <option value="tv">ดิจิตอล</option>
-                        <option value="sport">กีฬา / บอลสด</option>                        
+                        <option value="mono">monomax</option>                        
                         <option value="movie">หนัง</option>
                         <option value="series">ซีรีย์</option>
                         <option value="cartoon">การ์ตูน</option>
@@ -180,8 +180,9 @@
             { name: "T-Sports7", cat: "digital", url: "https://edge-2.m-fixer.net:8092/stream/ais/t-sports7/master.m3u8", logo: "https://www.fileinw.com/postor/20240418193731tsports7.jpg" },
             { name: "TPTV", cat: "digital", url: "https://tv-live.tpchannel.org/live/tv_1080p.m3u8", logo: "https://www.fileinw.com/postor/20240418191939tptv.jpg" },
             
-            { name: "บอลสด ช่อง 1 (HTTPS)", cat: "sport", url: "https://test-streams.mux.dev/x36hls/url_6/193039.m3u8", logo: "https://img.icons8.com/color/96/football--v1.png" },
-            { name: "บอลสด ช่อง 2 (HTTP Test)", cat: "sport", url: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4", logo: "https://img.icons8.com/color/96/soccer-ball.png" },
+            { name: "monomax1", cat: "mono", url: "https://edge-2.m-fixer.net:8092/stream/monomax/monomax1/master.m3u8", logo: "https://bestcommt2.github.io/logo/sport/momomaxsport_1.png" },
+            { name: "monomax2", cat: "mono", url: "https://edge-2.m-fixer.net:8092/stream/monomax/monomax2/master.m3u8", logo: "https://bestcommt2.github.io/logo/sport/momomaxsport_2.png" },
+            
             { name: "ช่องทีวี 3 HD", cat: "tv", url: "https://cph-p2s-kfi.akamaized.net/hls/live/2000341/test/master.m3u8", logo: "https://img.icons8.com/color/96/tv.png" },
             { name: "ช่องหนังยอดฮิต", cat: "movie", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4", logo: "https://img.icons8.com/color/96/clapperboard.png" }
         ];
