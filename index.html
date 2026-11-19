@@ -97,7 +97,6 @@
         <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-none" id="category-tabs">
             <button onclick="filterCategory('all')" class="cat-btn px-4 py-2 rounded-xl text-xs font-medium bg-red-600 text-white whitespace-nowrap shadow transition">ทั้งหมด</button>
             <button onclick="filterCategory('digital')" class="cat-btn px-4 py-2 rounded-xl text-xs font-medium bg-gray-900 border border-gray-800 text-gray-300 hover:text-white whitespace-nowrap transition">ดิจิตอลทีวี</button>
-            <button onclick="filterCategory('mono')" class="cat-btn px-4 py-2 rounded-xl text-xs font-medium bg-gray-900 border border-gray-800 text-gray-300 hover:text-white whitespace-nowrap transition">monomax</button>
             <button onclick="filterCategory('tv')" class="cat-btn px-4 py-2 rounded-xl text-xs font-medium bg-gray-900 border border-gray-800 text-gray-300 hover:text-white whitespace-nowrap transition">ช่องทีวี</button>
             <button onclick="filterCategory('movie')" class="cat-btn px-4 py-2 rounded-xl text-xs font-medium bg-gray-900 border border-gray-800 text-gray-300 hover:text-white whitespace-nowrap transition">หนัง</button>
             <button onclick="filterCategory('series')" class="cat-btn px-4 py-2 rounded-xl text-xs font-medium bg-gray-900 border border-gray-800 text-gray-300 hover:text-white whitespace-nowrap transition">ซีรีย์</button>
@@ -135,8 +134,7 @@
                 <div>
                     <label class="text-xs text-gray-400 mb-1 block">หมวดหมู่</label>
                     <select id="channel-cat" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-red-600">
-                        <option value="digital">ดิจิตอลทีวี</option>
-                        <option value="mono">monomax</option>
+                        <option value="digital">ดิจิตอลทีวี</option>                        
                         <option value="tv">ช่องทีวี</option>
                         <option value="movie">หนัง</option>
                         <option value="series">ซีรีย์</option>
@@ -165,8 +163,7 @@
             { name: "CH3", cat: "digital", url: "https://edge-2.m-fixer.net:8092/stream/ais/3hd/master.m3u8", logo: "https://www.fileinw.com/postor/20240418191821ch3hd.jpg" },
             { name: "CH5", cat: "digital", url: "https://edge-2.m-fixer.net:8092/stream/ais/ch5/master.m3u8", logo: "https://www.fileinw.com/postor/20240418185850ch5hd.jpg" },
             
-            { name: "บอลสด ช่อง 1 ", cat: "mono", url: "https://edge-2.m-fixer.net:8092/stream/ais/aisplay41/master.m3u8", logo: "https://img.icons8.com/color/96/football--v1.png" },
-            { name: "บอลสด ช่อง 2 ", cat: "mono", url: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4", logo: "https://img.icons8.com/color/96/soccer-ball.png" },
+            
             { name: "ช่องทีวี 3 HD", cat: "tv", url: "https://cph-p2s-kfi.akamaized.net/hls/live/2000341/test/master.m3u8", logo: "https://img.icons8.com/color/96/tv.png" },
             { name: "ช่องหนังยอดฮิต", cat: "movie", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4", logo: "https://img.icons8.com/color/96/clapperboard.png" }
         ];
