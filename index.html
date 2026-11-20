@@ -207,27 +207,36 @@
        function playChannel(channel) {
   const ref = channel.referrer || "";
 
-  if (Hls.isSupported()) {
+  if (hlsInstance) {
+    hlsInstance.destroy();
+    hlsInstance = null;
+  }
+
+  if (window.Hls && Hls.isSupported()) {
     const hls = new Hls({
       xhrSetup: function (xhr, url) {
         if (ref) {
           try {
             xhr.setRequestHeader("Referer", ref);
-          } catch (e) {
-            // เบราว์เซอร์อาจบล็อกการตั้งค่า Referer โดยตรง
-          }
+          } catch (e) {}
         }
       }
     });
+    hlsInstance = hls;
     hls.loadSource(channel.url);
     hls.attachMedia(videoEl);
+    hls.on(Hls.Events.MANIFEST_PARSED, function () {
+      videoEl.play().catch(function () {});
+    });
   } else if (videoEl.canPlayType("application/vnd.apple.mpegurl")) {
     if (ref) {
       videoEl.referrerPolicy = "unsafe-url";
     }
     videoEl.src = channel.url;
+    videoEl.play().catch(function () {});
   }
-} 
+}
+
         let currentCategory = 'all';
         let hlsInstance = null;
         let isRotated = false;
